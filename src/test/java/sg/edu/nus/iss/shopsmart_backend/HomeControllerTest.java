@@ -19,14 +19,14 @@ class HomeControllerTest {
     void testHome() throws Exception {
         mockMvc.perform(get("/"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Welcome to Shopsmart!"));
+                .andExpect(content().string("Welcome to Central Hub!"));
     }
 
     @Test
     void testHomeWithEmptyPath() throws Exception {
         mockMvc.perform(get(""))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Welcome to Shopsmart!"));
+                .andExpect(content().string("Welcome to Central Hub!"));
     }
 }
 
