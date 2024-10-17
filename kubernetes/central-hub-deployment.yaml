@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: central-hub
+  labels:
+    app: central-hub
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: central-hub
+  template:
+    metadata:
+      labels:
+        app: central-hub
+    spec:
+      containers:
+        - name: central-hub
+          image: simranarora264/central-hub:latest
+          ports:
+            - containerPort: 8082
+          env:
+            - name: LOGGING_FILE_PATH
+              value: /var/log/central-hub/central-hub.log
+            - name: LOGSTASH_HOST
+              value: "logstash"
+            - name: LOGSTASH_PORT
+              value: "5044"
+          volumeMounts:
+            - name: log-volume
+              mountPath: /var/log/central-hub
+        - name: filebeat
+          image: docker.elastic.co/beats/filebeat:7.14.1
+          volumeMounts:
+            - name: log-volume
+              mountPath: /var/log/central-hub
+            - name: filebeat-config
+              mountPath: /usr/share/filebeat/filebeat.yml
+              subPath: filebeat.yml
+      volumes:
+        - name: log-volume
+          persistentVolumeClaim:
+            claimName: central-hub-log-pvc
+        - name: filebeat-config
+          configMap:
+            name: filebeat-config
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: central-hub-log-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: central-hub
+spec:
+  selector:
+    app: central-hub
+  ports:
+    - protocol: TCP
+      port: 8082
+      targetPort: 8082
+  type: NodePort
