@@ -91,7 +91,7 @@ jobs:
       - name: Build, Test, and Analyze with Maven
         run: |
           mvn clean verify sonar:sonar \
-            -Dsonar.projectKey=ShopSmartSG_central-repo-service \
+            -Dsonar.projectKey=ShopSmartSG_shopsmartsg-backend \
             -Dsonar.organization=shopsmartsg \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
@@ -106,8 +106,8 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t shopsmartsg/central-repo-service .
-          docker tag shopsmartsg/central-repo-service:latest ${{ secrets.ECR_REPO_URI }}:latest
+          docker build -t shopsmartsg/central-hub .
+          docker tag shopsmartsg/central-hub:latest ${{ secrets.ECR_REPO_URI }}:latest
 
       - name: Push Docker image to ECR
         run: |
