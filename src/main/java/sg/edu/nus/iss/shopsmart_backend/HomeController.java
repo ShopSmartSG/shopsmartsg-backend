@@ -6,6 +6,6 @@ import org.springframework.web.bind.annotation.*;
 public class HomeController {
     @RequestMapping("/")
     public String home() {
-        return "Welcome to Shopsmart!";
+        return "Welcome to Central Hub!";
     }
 }
