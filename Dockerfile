@@ -16,8 +16,8 @@ RUN mkdir -p /var/log/central-hub && \
 # Copy the project’s jar file into the container at /app
 COPY --from=build /app/target/central-hub.jar central-repo-app.jar
 
-# Make port 8082 available to the world outside this container
-EXPOSE 8082
+# Make port 8080 available to the world outside this container
+EXPOSE 8080
 
 # Run the jar file
 ENTRYPOINT ["java", "-jar", "central-repo-app.jar"]
