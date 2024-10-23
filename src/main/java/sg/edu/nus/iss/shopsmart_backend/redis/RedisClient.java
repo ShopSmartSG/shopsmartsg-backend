@@ -2,10 +2,13 @@ package sg.edu.nus.iss.shopsmart_backend.redis;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Service;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import sg.edu.nus.iss.shopsmart_backend.utils.RedisKeys;
 
+@Configuration
 public class RedisClient extends RedisKeys {
 
     @Value("${"+REDIS_HOST_KEY+"}")

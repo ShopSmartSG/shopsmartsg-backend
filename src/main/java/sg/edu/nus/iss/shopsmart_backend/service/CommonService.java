@@ -7,15 +7,25 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import sg.edu.nus.iss.shopsmart_backend.model.ApiRequestResolver;
+import sg.edu.nus.iss.shopsmart_backend.redis.RedisManager;
 
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
+@Service
 public class CommonService {
     private static final Logger log = LoggerFactory.getLogger(CommonService.class);
-    public CommonService(){}
+
+    private final RedisManager redisManager;
+
+    @Autowired
+    public CommonService(RedisManager redisManager) {
+        this.redisManager = redisManager;
+    }
 
     public ApiRequestResolver createApiResolverRequest(HttpServletRequest request, String apiKey, JsonNode requestBody) {
         log.info("Creating API request resolver for API key: {}", apiKey);

@@ -20,10 +20,12 @@ public class RedisManager extends RedisKeys {
     private static final Logger log = LoggerFactory.getLogger(RedisManager.class);
     private final ObjectMapper mapper = Json.mapper();
 
+//    private final RedisClient redisClient;
     private final JedisPool jedisPool;
 
     @Autowired
     public RedisManager(JedisPool jedisPool) {
+//        this.redisClient = redisClient;
         this.jedisPool = jedisPool;
     }
 
@@ -38,6 +40,20 @@ public class RedisManager extends RedisKeys {
         log.debug("Setting hash map for redis key: {}", key);
         try(Jedis jedis = jedisPool.getResource()){
             jedis.hset(key, hashMap);
+        }
+    }
+
+    public Map<String, String> getHashMap(String key){
+        log.debug("Fetching hash map for redis key: {}", key);
+        try(Jedis jedis = jedisPool.getResource()){
+            return jedis.hgetAll(key);
+        }
+    }
+
+    public String set(String key, JsonNode value){
+        log.debug("Setting object {} in redis for key: {}", value, key);
+        try(Jedis jedis = jedisPool.getResource()){
+            return jedis.set(key, value.toString());
         }
     }
 
