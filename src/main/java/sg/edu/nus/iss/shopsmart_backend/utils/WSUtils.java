@@ -2,6 +2,7 @@ package sg.edu.nus.iss.shopsmart_backend.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.core.util.Json;
 import org.slf4j.Logger;
@@ -16,6 +17,7 @@ import sg.edu.nus.iss.shopsmart_backend.model.DataDynamicObject;
 import sg.edu.nus.iss.shopsmart_backend.model.Response;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -93,7 +95,8 @@ public class WSUtils extends ApplicationConstants {
                     resp.setStatus(FAILURE);
                     resp.setErrorCode(response.getStatusCode().toString());
                 }
-                if (response.getBody() instanceof JsonNode) {
+                if (response.getBody() instanceof JsonNode || response.getBody() instanceof ArrayNode
+                        || response.getBody() instanceof ArrayList) {
                     resp.setData((JsonNode) response.getBody());
                     return resp;
                 } else if (response.getBody() instanceof String) {
