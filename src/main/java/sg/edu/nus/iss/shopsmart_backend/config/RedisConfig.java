@@ -1,15 +1,17 @@
-package sg.edu.nus.iss.shopsmart_backend.redis;
+package sg.edu.nus.iss.shopsmart_backend.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Service;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import sg.edu.nus.iss.shopsmart_backend.utils.RedisKeys;
 
 @Configuration
-public class RedisClient extends RedisKeys {
+public class RedisConfig extends RedisKeys {
 
     @Value("${"+REDIS_HOST_KEY+"}")
     private String redisHost;
@@ -31,5 +33,20 @@ public class RedisClient extends RedisKeys {
         } else {
             return new JedisPool(poolConfig, redisHost, redisPort, 2000, redisPassword, redisDb);
         }
+    }
+
+    @Bean
+    public JedisConnectionFactory jedisConnectionFactory() {
+        RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration(redisHost,redisPort);
+        redisStandaloneConfiguration.setDatabase(redisDb);
+//        redisStandaloneConfiguration.setPassword(RedisPassword.of(password));
+        return new JedisConnectionFactory(redisStandaloneConfiguration);
+    }
+
+    @Bean
+    public RedisTemplate<String, Object> redisTemplate() {
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
+        template.setConnectionFactory(jedisConnectionFactory());
+        return template;
     }
 }

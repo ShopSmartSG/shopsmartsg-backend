@@ -1,4 +1,4 @@
-package sg.edu.nus.iss.shopsmart_backend.redis;
+package sg.edu.nus.iss.shopsmart_backend.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,11 +7,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import sg.edu.nus.iss.shopsmart_backend.model.DataDynamicObject;
-import sg.edu.nus.iss.shopsmart_backend.utils.RedisKeys;
 
 import java.util.Map;
 
@@ -22,17 +22,28 @@ public class RedisManager extends RedisKeys {
 
 //    private final RedisClient redisClient;
     private final JedisPool jedisPool;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
-    public RedisManager(JedisPool jedisPool) {
+    public RedisManager(JedisPool jedisPool, RedisTemplate<String, Object> redisTemplate) {
 //        this.redisClient = redisClient;
         this.jedisPool = jedisPool;
+        this.redisTemplate = redisTemplate;
+    }
+
+    public void setHashValue1(String key, String mapEntry, String value){
+        log.debug("Setting hash value for entry {} in redis key: {}", mapEntry, key);
+        try(Jedis jedis = jedisPool.getResource()){
+            jedis.hset(key, mapEntry, value);
+        }
     }
 
     public void setHashValue(String key, String mapEntry, String value){
         log.debug("Setting hash value for entry {} in redis key: {}", mapEntry, key);
-        try(Jedis jedis = jedisPool.getResource()){
-            jedis.hset(key, mapEntry, value);
+        try{
+            redisTemplate.opsForHash().put(key, mapEntry, value);
+        }catch (Exception ex){
+            log.error("Error occurred while setting hash value for entry {} in redis key: {}", mapEntry, key, ex);
         }
     }
 

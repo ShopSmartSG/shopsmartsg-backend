@@ -1,4 +1,4 @@
-package sg.edu.nus.iss.shopsmart_backend.redis;
+package sg.edu.nus.iss.shopsmart_backend.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import sg.edu.nus.iss.shopsmart_backend.model.DataDynamicObject;
 import sg.edu.nus.iss.shopsmart_backend.utils.RedisKeys;
+import sg.edu.nus.iss.shopsmart_backend.utils.RedisManager;
 
 import java.util.Map;
 

@@ -1,8 +1,6 @@
 package sg.edu.nus.iss.shopsmart_backend.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.v3.core.util.Json;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import sg.edu.nus.iss.shopsmart_backend.model.DataDynamicObject;
-import sg.edu.nus.iss.shopsmart_backend.redis.RedisService;
+import sg.edu.nus.iss.shopsmart_backend.service.RedisService;
 
 import java.util.Map;
 

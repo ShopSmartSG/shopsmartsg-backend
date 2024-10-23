@@ -3,14 +3,13 @@ package sg.edu.nus.iss.shopsmart_backend.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import sg.edu.nus.iss.shopsmart_backend.model.ApiRequestResolver;
-import sg.edu.nus.iss.shopsmart_backend.redis.RedisManager;
+import sg.edu.nus.iss.shopsmart_backend.utils.RedisManager;
 
 import java.util.Enumeration;
 import java.util.HashMap;
