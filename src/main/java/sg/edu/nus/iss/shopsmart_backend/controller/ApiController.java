@@ -35,7 +35,7 @@ public class ApiController {
         this.commonService = commonService;
     }
 
-    @GetMapping("/{apiKey}")
+    @GetMapping("/{apiKey}/**")
     public CompletableFuture<ResponseEntity<JsonNode>> handleGetRequest(
             @PathVariable String apiKey,
             HttpServletRequest request,
@@ -53,7 +53,7 @@ public class ApiController {
                 });
     }
 
-    @PostMapping("/{apiKey}")
+    @PostMapping("/{apiKey}/**")
     public CompletableFuture<ResponseEntity<JsonNode>> handlePostRequest(
             @PathVariable String apiKey,
             @RequestBody JsonNode requestBody,
@@ -72,7 +72,7 @@ public class ApiController {
                 });
     }
 
-    @PutMapping("/{apiKey}")
+    @PutMapping("/{apiKey}/**")
     public CompletableFuture<ResponseEntity<JsonNode>> handlePutRequest(
             @PathVariable String apiKey,
             @RequestBody JsonNode requestBody,
@@ -91,7 +91,7 @@ public class ApiController {
                 });
     }
 
-    @PatchMapping("/{apiKey}")
+    @PatchMapping("/{apiKey}/**")
     public CompletableFuture<ResponseEntity<JsonNode>> handlePatchRequest(
             @PathVariable String apiKey,
             @RequestBody JsonNode requestBody,
@@ -110,7 +110,7 @@ public class ApiController {
                 });
     }
 
-    @DeleteMapping("/{apiKey}")
+    @DeleteMapping("/{apiKey}/**")
     public CompletableFuture<ResponseEntity<JsonNode>> handleDeleteRequest(
             @PathVariable String apiKey,
             HttpServletRequest request,

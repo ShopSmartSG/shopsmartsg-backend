@@ -11,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import sg.edu.nus.iss.shopsmart_backend.model.ApiRequestResolver;
 import sg.edu.nus.iss.shopsmart_backend.model.ApiResponseResolver;
-import sg.edu.nus.iss.shopsmart_backend.model.Response;
 import sg.edu.nus.iss.shopsmart_backend.utils.ApplicationConstants;
 import sg.edu.nus.iss.shopsmart_backend.utils.WSUtils;
 
@@ -37,7 +36,7 @@ public class ApiService extends ApplicationConstants {
         //then if needed reconstruct the request object
         JsonNode requestBody = addCommonFieldsToRequest(apiRequestResolver);
         return wsUtils.makeWSCall(apiRequestResolver.getApiKey(), requestBody,
-                apiRequestResolver.getHeaders(), apiRequestResolver.getQueryParams()).thenApplyAsync(response -> {
+                apiRequestResolver.getHeaders(), apiRequestResolver.getQueryParams(), apiRequestResolver.getAdditionalUriData()).thenApplyAsync(response -> {
             log.debug("{} Received response for API key: {}", apiRequestResolver.getLoggerString(), apiRequestResolver.getApiKey());
             ApiResponseResolver apiResponseResolver = new ApiResponseResolver();
             apiResponseResolver.setStatusCode(response.getHttpStatusCode());
@@ -57,12 +56,19 @@ public class ApiService extends ApplicationConstants {
     }
 
     private JsonNode addCommonFieldsToRequest(ApiRequestResolver apiRequestResolver){
-        ObjectNode requestBody = (ObjectNode) apiRequestResolver.getRequestBody();
-        ObjectNode commonFields = mapper.createObjectNode();
-        commonFields.put(USER_ID, apiRequestResolver.getUserId());
-        commonFields.put(JWT_TOKEN, apiRequestResolver.getJwtToken());
-        commonFields.put(IP_ADDRESS, apiRequestResolver.getIpAddress());
-        requestBody.set(COMMON, commonFields);
-        return requestBody;
+        if(apiRequestResolver.getRequestBody() != null && !apiRequestResolver.getRequestBody().isNull()
+                && !apiRequestResolver.getRequestBody().isEmpty()){
+            ObjectNode requestBody = (ObjectNode) apiRequestResolver.getRequestBody();
+            ObjectNode commonFields = mapper.createObjectNode();
+            commonFields.put(USER_ID, apiRequestResolver.getUserId());
+            commonFields.put(JWT_TOKEN, apiRequestResolver.getJwtToken());
+            commonFields.put(IP_ADDRESS, apiRequestResolver.getIpAddress());
+            commonFields.put(REQ_URI, apiRequestResolver.getRequestUri());
+            commonFields.put(ADDITIONAL_URI_DATA, apiRequestResolver.getAdditionalUriData());
+            requestBody.set(COMMON, commonFields);
+            return requestBody;
+        }else{
+            return apiRequestResolver.getRequestBody();
+        }
     }
 }

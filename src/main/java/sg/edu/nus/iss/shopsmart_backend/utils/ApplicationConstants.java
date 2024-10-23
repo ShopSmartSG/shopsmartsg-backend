@@ -13,4 +13,7 @@ public class ApplicationConstants {
     protected static final String JWT_TOKEN = "jwtToken";
     protected static final String IP_ADDRESS = "ipAddress";
     protected static final String COMMON = "common";
+    protected static final String SLASH = "/";
+    protected static final String REQ_URI = "requestUri";
+    protected static final String ADDITIONAL_URI_DATA = "additionalUriData";
 }

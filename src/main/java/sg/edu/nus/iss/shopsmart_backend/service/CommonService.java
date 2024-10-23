@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import sg.edu.nus.iss.shopsmart_backend.model.ApiRequestResolver;
+import sg.edu.nus.iss.shopsmart_backend.utils.ApplicationConstants;
 import sg.edu.nus.iss.shopsmart_backend.utils.RedisManager;
 
 import java.util.Enumeration;
@@ -16,7 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-public class CommonService {
+public class CommonService extends ApplicationConstants {
     private static final Logger log = LoggerFactory.getLogger(CommonService.class);
 
     private final RedisManager redisManager;
@@ -32,6 +33,16 @@ public class CommonService {
         apiRequestResolver.setApiKey(apiKey);
         apiRequestResolver.setRequestBody(requestBody);
         apiRequestResolver.setIpAddress(request.getRemoteAddr());
+        apiRequestResolver.setRequestUri(request.getRequestURI());
+
+        String requestUri = request.getRequestURI();
+        String additionalUriData = "";
+        if(requestUri.contains(apiKey.concat(SLASH))){
+            additionalUriData = request.getRequestURI().split(apiKey + "/")[1];
+            apiRequestResolver.setAdditionalUriData(additionalUriData);
+            log.info("{} For the api key {} found additional data to be provided : {}", apiRequestResolver.getLoggerString(),
+                    apiRequestResolver.getApiKey(), apiRequestResolver.getAdditionalUriData());
+        }
 
         // Extract headers
         Map<String, String> headers = new HashMap<>();

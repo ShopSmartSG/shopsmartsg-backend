@@ -11,6 +11,8 @@ public class ApiRequestResolver {
     private String correlationId;
     private String ipAddress;
     private String apiKey;
+    private String additionalUriData;
+    private String requestUri;
     private Map<String, String> headers;
     private Map<String, String> queryParams;
     private Map<String, String> cookies;

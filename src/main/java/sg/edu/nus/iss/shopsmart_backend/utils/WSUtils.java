@@ -40,7 +40,8 @@ public class WSUtils extends ApplicationConstants {
                 .build();
     }
 
-    public CompletableFuture<Response> makeWSCall(String apiKey, JsonNode data, Map<String, String> headers, Map<String, String> queryParams) {
+    public CompletableFuture<Response> makeWSCall(String apiKey, JsonNode data, Map<String, String> headers,
+                                                  Map<String, String> queryParams, String additionalUriData) {
         Response resp = new Response();
         ObjectNode responseData = mapper.createObjectNode();
         log.info("Handling request for API: {}", apiKey);
@@ -58,6 +59,9 @@ public class WSUtils extends ApplicationConstants {
             String serviceUrl = redisManager.getServiceEndpoint(ddo.getService());
 
             String apiEndpoint = serviceUrl.concat(ddo.getApi());
+            if (additionalUriData != null && !additionalUriData.isEmpty()) {
+                apiEndpoint = apiEndpoint.concat(SLASH).concat(additionalUriData);
+            }
 
             UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(apiEndpoint);
             if (queryParams != null && !queryParams.isEmpty()) {

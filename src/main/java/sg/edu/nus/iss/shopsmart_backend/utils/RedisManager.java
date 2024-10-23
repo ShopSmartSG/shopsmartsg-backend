@@ -22,63 +22,63 @@ public class RedisManager extends RedisKeys {
 
 //    private final RedisClient redisClient;
     private final JedisPool jedisPool;
-    private final RedisTemplate<String, Object> redisTemplate;
+//    private final RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
-    public RedisManager(JedisPool jedisPool, RedisTemplate<String, Object> redisTemplate) {
+    public RedisManager(JedisPool jedisPool) {
 //        this.redisClient = redisClient;
         this.jedisPool = jedisPool;
-        this.redisTemplate = redisTemplate;
+//        this.redisTemplate = redisTemplate;
+    }
+
+    public void setHashValue(String key, String mapEntry, String value){
+        log.debug("Setting hash value for entry {} in redis key: {}", mapEntry, key);
+        try(Jedis jedis = jedisPool.getResource()){
+            jedis.hset(key, mapEntry, value);
+        }
     }
 
 //    public void setHashValue(String key, String mapEntry, String value){
 //        log.debug("Setting hash value for entry {} in redis key: {}", mapEntry, key);
-//        try(Jedis jedis = jedisPool.getResource()){
-//            jedis.hset(key, mapEntry, value);
-//        }
-//    }
-
-    public void setHashValue(String key, String mapEntry, String value){
-        log.debug("Setting hash value for entry {} in redis key: {}", mapEntry, key);
-        try{
-            redisTemplate.opsForHash().put(key, mapEntry, value);
-        }catch (Exception ex){
-            log.error("Error occurred while setting hash value for entry {} in redis key: {}", mapEntry, key, ex);
-        }
-    }
-
-//    public void setHashMap(String key, Map<String, String> hashMap){
-//        log.debug("Setting hash map for redis key: {}", key);
-//        try(Jedis jedis = jedisPool.getResource()){
-//            jedis.hset(key, hashMap);
+//        try{
+//            redisTemplate.opsForHash().put(key, mapEntry, value);
+//        }catch (Exception ex){
+//            log.error("Error occurred while setting hash value for entry {} in redis key: {}", mapEntry, key, ex);
 //        }
 //    }
 
     public void setHashMap(String key, Map<String, String> hashMap){
         log.debug("Setting hash map for redis key: {}", key);
-        try{
-            redisTemplate.opsForHash().putAll(key, hashMap);
-        } catch (Exception e) {
-            log.error("Error occurred while setting hash map for redis key: {}", key, e);
+        try(Jedis jedis = jedisPool.getResource()){
+            jedis.hset(key, hashMap);
         }
     }
 
-//    public Map<String, String> getHashMap(String key){
-//        log.debug("Fetching hash map for redis key: {}", key);
-//        try(Jedis jedis = jedisPool.getResource()){
-//            return jedis.hgetAll(key);
+//    public void setHashMap(String key, Map<String, String> hashMap){
+//        log.debug("Setting hash map for redis key: {}", key);
+//        try{
+//            redisTemplate.opsForHash().putAll(key, hashMap);
+//        } catch (Exception e) {
+//            log.error("Error occurred while setting hash map for redis key: {}", key, e);
 //        }
 //    }
 
     public Map<String, String> getHashMap(String key){
         log.debug("Fetching hash map for redis key: {}", key);
-        try{
-            return mapper.convertValue(redisTemplate.opsForHash().entries(key), Map.class);
-        }catch(Exception ex){
-            log.error("Error occurred while fetching hash map for redis key: {}", key, ex);
-            return null;
+        try(Jedis jedis = jedisPool.getResource()){
+            return jedis.hgetAll(key);
         }
     }
+
+//    public Map<String, String> getHashMap(String key){
+//        log.debug("Fetching hash map for redis key: {}", key);
+//        try{
+//            return mapper.convertValue(redisTemplate.opsForHash().entries(key), Map.class);
+//        }catch(Exception ex){
+//            log.error("Error occurred while fetching hash map for redis key: {}", key, ex);
+//            return null;
+//        }
+//    }
 
     public String set(String key, JsonNode value){
         log.debug("Setting object {} in redis for key: {}", value, key);
