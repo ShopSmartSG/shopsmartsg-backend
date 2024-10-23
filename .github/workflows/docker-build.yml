@@ -3,7 +3,7 @@ name: Build, Test, and Push Docker Image
 on:
   push:
     branches:
-      - feature/SHOPSMART-54*
+      - main
   workflow_dispatch: # allows manual triggering
 
 jobs:
