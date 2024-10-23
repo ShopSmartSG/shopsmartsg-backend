@@ -96,8 +96,11 @@ public class WSUtils extends ApplicationConstants {
                     resp.setErrorCode(response.getStatusCode().toString());
                 }
                 if (response.getBody() instanceof JsonNode || response.getBody() instanceof ArrayNode
-                        || response.getBody() instanceof ArrayList) {
+                        || response.getBody() instanceof ObjectNode) {
                     resp.setData((JsonNode) response.getBody());
+                    return resp;
+                } else if (response.getBody() instanceof ArrayList) {
+                    resp.setData(mapper.convertValue(response.getBody(), JsonNode.class));
                     return resp;
                 } else if (response.getBody() instanceof String) {
                     try {
