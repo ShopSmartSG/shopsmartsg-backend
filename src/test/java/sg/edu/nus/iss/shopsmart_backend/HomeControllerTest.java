@@ -42,7 +42,6 @@ class HomeControllerTest {
         mockMvc.perform(get("/home"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Welcome to Central Hub Home!"));
-                .andExpect(content().string("Welcome to Central Hub!"));
     }
 }
 
