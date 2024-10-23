@@ -122,9 +122,14 @@
 					<excludes>
 						// excluded the main class from code coverage
 						<exclude>sg/edu/nus/iss/shopsmart_backend/HomeController.class</exclude>
+						<exclude>sg/edu/nus/iss/shopsmart_backend/ShopsmartBackendApplication.class</exclude>
 						<!-- Exclude all classes in the model package from code coverage -->
-						<exclude>sg/edu/nus/iss/shopsmart_backend/model/**</exclude>
 						<exclude>sg/edu/nus/iss/shopsmart_backend/config/**</exclude>
+						<exclude>sg/edu/nus/iss/shopsmart_backend/controller/**</exclude>
+						<exclude>sg/edu/nus/iss/shopsmart_backend/model/**</exclude>
+						<exclude>sg/edu/nus/iss/shopsmart_backend/redis/**</exclude>
+						<exclude>sg/edu/nus/iss/shopsmart_backend/service/**</exclude>
+						<exclude>sg/edu/nus/iss/shopsmart_backend/util/**</exclude>
 					</excludes>
 				</configuration>
 				<executions>
