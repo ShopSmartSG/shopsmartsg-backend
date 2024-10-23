@@ -30,7 +30,7 @@ public class RedisService extends RedisKeys {
         log.info("Request received to insert ddo data in redis for ddo key : {}, with value : {}", key, ddo);
         String ddoKey = REDIS_DDO_PREFIX.concat(key);
         JsonNode value = mapper.convertValue(ddo, JsonNode.class);
-        redisManager.set(key, value);
+        redisManager.set(ddoKey, value);
         log.info("Inserting data in redis as string: {} for key {}", value.toString(), ddoKey);
 
         ObjectNode res = mapper.createObjectNode();
