@@ -31,12 +31,12 @@ public class RedisManager extends RedisKeys {
         this.redisTemplate = redisTemplate;
     }
 
-    public void setHashValue1(String key, String mapEntry, String value){
-        log.debug("Setting hash value for entry {} in redis key: {}", mapEntry, key);
-        try(Jedis jedis = jedisPool.getResource()){
-            jedis.hset(key, mapEntry, value);
-        }
-    }
+//    public void setHashValue(String key, String mapEntry, String value){
+//        log.debug("Setting hash value for entry {} in redis key: {}", mapEntry, key);
+//        try(Jedis jedis = jedisPool.getResource()){
+//            jedis.hset(key, mapEntry, value);
+//        }
+//    }
 
     public void setHashValue(String key, String mapEntry, String value){
         log.debug("Setting hash value for entry {} in redis key: {}", mapEntry, key);
@@ -47,17 +47,36 @@ public class RedisManager extends RedisKeys {
         }
     }
 
+//    public void setHashMap(String key, Map<String, String> hashMap){
+//        log.debug("Setting hash map for redis key: {}", key);
+//        try(Jedis jedis = jedisPool.getResource()){
+//            jedis.hset(key, hashMap);
+//        }
+//    }
+
     public void setHashMap(String key, Map<String, String> hashMap){
         log.debug("Setting hash map for redis key: {}", key);
-        try(Jedis jedis = jedisPool.getResource()){
-            jedis.hset(key, hashMap);
+        try{
+            redisTemplate.opsForHash().putAll(key, hashMap);
+        } catch (Exception e) {
+            log.error("Error occurred while setting hash map for redis key: {}", key, e);
         }
     }
 
+//    public Map<String, String> getHashMap(String key){
+//        log.debug("Fetching hash map for redis key: {}", key);
+//        try(Jedis jedis = jedisPool.getResource()){
+//            return jedis.hgetAll(key);
+//        }
+//    }
+
     public Map<String, String> getHashMap(String key){
         log.debug("Fetching hash map for redis key: {}", key);
-        try(Jedis jedis = jedisPool.getResource()){
-            return jedis.hgetAll(key);
+        try{
+            return mapper.convertValue(redisTemplate.opsForHash().entries(key), Map.class);
+        }catch(Exception ex){
+            log.error("Error occurred while fetching hash map for redis key: {}", key, ex);
+            return null;
         }
     }
 
