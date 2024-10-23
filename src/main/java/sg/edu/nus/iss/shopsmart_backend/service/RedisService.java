@@ -26,20 +26,22 @@ public class RedisService extends RedisKeys {
         this.redisManager = redisManager;
     }
 
-    public JsonNode insertDdoDataInRedis(String key, DataDynamicObject ddo) {
+    public String insertDdoDataInRedis(String key, DataDynamicObject ddo) {
         log.info("Request received to insert ddo data in redis for ddo key : {}, with value : {}", key, ddo);
         String ddoKey = REDIS_DDO_PREFIX.concat(key);
-        String resp = redisManager.set(key, mapper.convertValue(ddo, JsonNode.class));
-        log.info("Response received after inserting data in redis: {} for key {}", resp, ddoKey);
+        JsonNode value = mapper.convertValue(ddo, JsonNode.class);
+        redisManager.set(key, value);
+        log.info("Inserting data in redis as string: {} for key {}", value.toString(), ddoKey);
 
+        ObjectNode res = mapper.createObjectNode();
         try{
-            log.info("Parsed response : {}", mapper.readTree(resp));
-            return mapper.readTree(resp);
+            log.info("Parsed response : {}", mapper.readTree(value.toString()));
+            res.put("status", "done");
+            return res.toString();
         } catch (Exception e){
             log.error("Error while parsing response: {}", e.getMessage());
-            ObjectNode res = mapper.createObjectNode();
             res.put("error", e.getMessage());
-            return res;
+            return res.toString();
         }
     }
 

@@ -28,7 +28,7 @@ public class RedisController {
     }
 
     @PostMapping("/ddo/{apiKey}")
-    public ResponseEntity<JsonNode> insertDdoDataInRedis(@PathVariable String apiKey, @RequestBody DataDynamicObject requestBody) {
+    public ResponseEntity<String> insertDdoDataInRedis(@PathVariable String apiKey, @RequestBody DataDynamicObject requestBody) {
         log.info("Inserting DDO data in Redis for API key: {}", apiKey);
         return ok(redisService.insertDdoDataInRedis(apiKey, requestBody));
     }
