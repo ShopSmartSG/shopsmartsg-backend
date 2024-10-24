@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -40,6 +41,11 @@ public class ApiController {
             @PathVariable String apiKey,
             HttpServletRequest request,
             HttpServletResponse response) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Access-Control-Allow-Origin", "http://localhost:3000");
+        headers.add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        headers.add("Access-Control-Allow-Headers", "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range");
+        headers.add("Access-Control-Expose-Headers", "Content-Length,Content-Range");
         log.info("Handling GET request for API: {}", apiKey);
         ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, apiKey, null);
         //perform jwt validation check here
@@ -49,7 +55,7 @@ public class ApiController {
                     log.info("{} Time taken to complete GET api request {} is {} ms", apiRequestResolver.getLoggerString(),
                             apiKey, (System.currentTimeMillis() - startTime));
                     setSessionAndCookie(response, apiRequestResolver.getSessionId());
-                    return new ResponseEntity<>(resolvedResp.getRespData(), resolvedResp.getStatusCode());
+                    return new ResponseEntity<>(resolvedResp.getRespData(), headers, resolvedResp.getStatusCode());
                 }).thenApplyAsync(resp -> {
                     log.info("Response: {}", resp);
                     return resp;
