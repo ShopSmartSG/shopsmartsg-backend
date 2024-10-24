@@ -50,6 +50,9 @@ public class ApiController {
                             apiKey, (System.currentTimeMillis() - startTime));
                     setSessionAndCookie(response, apiRequestResolver.getSessionId());
                     return new ResponseEntity<>(resolvedResp.getRespData(), resolvedResp.getStatusCode());
+                }).thenApplyAsync(resp -> {
+                    log.info("Response: {}", resp);
+                    return resp;
                 });
     }
 
