@@ -42,7 +42,7 @@ public class ApiController {
             HttpServletRequest request,
             HttpServletResponse response) {
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Access-Control-Allow-Origin", "http://localhost:3000");
+        headers.add("Access-Control-Allow-Origin", "*");
         headers.add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         headers.add("Access-Control-Allow-Headers", "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range");
         headers.add("Access-Control-Expose-Headers", "Content-Length,Content-Range");
