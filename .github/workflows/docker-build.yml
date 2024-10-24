@@ -3,7 +3,8 @@ name: Build, Test, and Push Docker Image
 on:
   push:
     branches:
-      - main
+      - CORS_ISSUE
+      - Main
   workflow_dispatch: # allows manual triggering
 
 jobs:
