@@ -46,7 +46,7 @@ public class ProfileController extends Constants {
                     (System.currentTimeMillis() - startTime));
             setRequiredCookies(apiRequestResolver, request, response);
             log.info("{} for sessionId {}, the following servlet response is being set {} for opt generation for registration",
-                    apiRequestResolver.getLoggerString(), request.getSession().getId(), response);
+                    apiRequestResolver.getLoggerString(), apiRequestResolver.getSessionId(), response.getHeaderNames());
             return new ResponseEntity<>(resp.getRespData(),Utils.createHeaders(), resp.getStatusCode());
         });
     }
@@ -69,7 +69,7 @@ public class ProfileController extends Constants {
             }
             setRequiredCookies(apiRequestResolver, request, response);
             log.info("{} for sessionId {}, the following servlet response is being set {} for validate otp and create profile",
-                    apiRequestResolver.getLoggerString(), request.getSession().getId(), response);
+                    apiRequestResolver.getLoggerString(), apiRequestResolver.getSessionId(), response.getHeaderNames());
             return new ResponseEntity<>(resp.getRespData(),Utils.createHeaders(), resp.getStatusCode());
         });
     }
@@ -85,7 +85,7 @@ public class ProfileController extends Constants {
                     (System.currentTimeMillis() - startTime));
             setRequiredCookies(apiRequestResolver, request, response);
             log.info("{} for sessionId {}, the following servlet response is being set {} for opt generation for login",
-                    apiRequestResolver.getLoggerString(), request.getSession().getId(), response);
+                    apiRequestResolver.getLoggerString(), apiRequestResolver.getSessionId(), response.getHeaderNames());
             return new ResponseEntity<>(resp.getRespData(),Utils.createHeaders(), resp.getStatusCode());
         });
     }
@@ -108,7 +108,7 @@ public class ProfileController extends Constants {
             }
             setRequiredCookies(apiRequestResolver, request, response);
             log.info("{} for sessionId {}, the following servlet response is being set {} for validate otp and fetch userId",
-                    apiRequestResolver.getLoggerString(), request.getSession().getId(), response);
+                    apiRequestResolver.getLoggerString(), apiRequestResolver.getSessionId(), response.getHeaderNames());
             return new ResponseEntity<>(resp.getRespData(),Utils.createHeaders(), resp.getStatusCode());
         });
     }

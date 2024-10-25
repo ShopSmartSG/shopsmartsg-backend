@@ -54,7 +54,7 @@ public class ApiController extends Constants {
                             apiKey, (System.currentTimeMillis() - startTime));
                     setRequiredCookies(apiRequestResolver, request, response);
                     log.info("{} for sessionId {}, the following servlet response is being set {} for GET request",
-                            apiRequestResolver.getLoggerString(), apiRequestResolver.getSessionId(), response);
+                            apiRequestResolver.getLoggerString(), apiRequestResolver.getSessionId(), response.getHeaderNames());
                     return new ResponseEntity<>(resolvedResp.getRespData(), headers, resolvedResp.getStatusCode());
                 });
     }
@@ -73,7 +73,7 @@ public class ApiController extends Constants {
                             apiKey, (System.currentTimeMillis() - startTime));
                     setRequiredCookies(apiRequestResolver, request, response);
                     log.info("{} for sessionId {}, the following servlet response is being set {} for POST request",
-                            apiRequestResolver.getLoggerString(), apiRequestResolver.getSessionId(), response);
+                            apiRequestResolver.getLoggerString(), apiRequestResolver.getSessionId(), response.getHeaderNames());
                     return new ResponseEntity<>(resolvedResp.getRespData(),headers, resolvedResp.getStatusCode());
                 });
     }
@@ -92,7 +92,7 @@ public class ApiController extends Constants {
                             apiKey, (System.currentTimeMillis() - startTime));
                     setRequiredCookies(apiRequestResolver, request, response);
                     log.info("{} for sessionId {}, the following servlet response is being set {} for PUT request",
-                            apiRequestResolver.getLoggerString(), apiRequestResolver.getSessionId(), response);
+                            apiRequestResolver.getLoggerString(), apiRequestResolver.getSessionId(), response.getHeaderNames());
                     return new ResponseEntity<>(resolvedResp.getRespData(),headers,resolvedResp.getStatusCode());
                 });
     }
@@ -111,7 +111,7 @@ public class ApiController extends Constants {
                             apiKey, (System.currentTimeMillis() - startTime));
                     setRequiredCookies(apiRequestResolver, request, response);
                     log.info("{} for sessionId {}, the following servlet response is being set {} for PATCH request",
-                            apiRequestResolver.getLoggerString(), apiRequestResolver.getSessionId(), response);
+                            apiRequestResolver.getLoggerString(), apiRequestResolver.getSessionId(), response.getHeaderNames());
                     return new ResponseEntity<>(resolvedResp.getRespData(), headers,resolvedResp.getStatusCode());
                 });
     }
@@ -130,7 +130,7 @@ public class ApiController extends Constants {
                             apiKey, (System.currentTimeMillis() - startTime));
                     setRequiredCookies(apiRequestResolver, request, response);
                     log.info("{} for sessionId {}, the following servlet response is being set {} for DELETE request",
-                            apiRequestResolver.getLoggerString(), apiRequestResolver.getSessionId(), response);
+                            apiRequestResolver.getLoggerString(), apiRequestResolver.getSessionId(), response.getHeaderNames());
                     return new ResponseEntity<>(resolvedResp.getRespData(), headers,resolvedResp.getStatusCode());
                 });
     }

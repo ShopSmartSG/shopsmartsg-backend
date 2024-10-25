@@ -53,14 +53,14 @@ public class Utils extends Constants{
         response.addCookie(sessionCookie);
 //        response.setHeader("Set-Cookie", "SESSION=" + sessionId + "; Path=/; HttpOnly");
         //handle session here.
-        HttpSession session = request.getSession(false);
-
-        if (session == null || !sessionId.equals(session.getId())) {
-            session = request.getSession(true);
-            session.setAttribute(SESSION_ID, sessionId);
-        }
+//        HttpSession session = request.getSession(false);
+//
+//        if (session == null || !sessionId.equals(session.getId())) {
+//            session = request.getSession(true);
+//            session.setAttribute(SESSION_ID, sessionId);
+//        }
         // Set additional session attributes
-        apiRequestResolver.getSessionAttributes().forEach(session::setAttribute);
+//        apiRequestResolver.getSessionAttributes().forEach(session::setAttribute);
     }
 
     public void setUserIdCookieNeededOrRemove(ApiRequestResolver apiRequestResolver, HttpServletResponse response){
