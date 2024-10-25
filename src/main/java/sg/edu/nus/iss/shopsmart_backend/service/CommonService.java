@@ -39,7 +39,7 @@ public class CommonService extends Constants {
         apiRequestResolver.setRequestUri(request.getRequestURI());
 
         // Extract headers
-        log.info("{} Extracting headers from request", apiRequestResolver.getCorrelationId());
+        log.info("{} Extracting headers from request {}", apiRequestResolver.getCorrelationId(), request.getHeaderNames());
         Map<String, String> headers = new HashMap<>();
         Enumeration<String> headerNames = request.getHeaderNames();
         while (headerNames.hasMoreElements()) {
@@ -49,13 +49,13 @@ public class CommonService extends Constants {
         apiRequestResolver.setHeaders(headers);
 
         // Extract query parameters
-        log.info("{} Extracting query parameters from request", apiRequestResolver.getCorrelationId());
+        log.info("{} Extracting query parameters from request {}", apiRequestResolver.getCorrelationId(), request.getParameterMap());
         Map<String, String> queryParams = new HashMap<>();
         request.getParameterMap().forEach((key, value) -> queryParams.put(key, value[0]));
         apiRequestResolver.setQueryParams(queryParams);
 
         // Extract cookies
-        log.info("{} Extracting cookies from request", apiRequestResolver.getCorrelationId());
+        log.info("{} Extracting cookies from request {}", apiRequestResolver.getCorrelationId(), request.getCookies());
         Map<String, String> cookies = new HashMap<>();
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
@@ -63,14 +63,18 @@ public class CommonService extends Constants {
             }
         }
         apiRequestResolver.setCookies(cookies);
+        log.debug("{} Cookies: {}", apiRequestResolver.getCorrelationId(), apiRequestResolver.getCookies());
 
         // Extract session information
         log.info("{} Extracting or setting session information from request", apiRequestResolver.getCorrelationId());
         String sessionId= "";
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            checkAndUpdateSessionData(apiRequestResolver, sessionId, getExistingSessionData(session.getId()));
-        } else if(cookies.containsKey(SESSION_ID) && StringUtils.isNotEmpty(cookies.get(SESSION_ID))){
+//        HttpSession session = request.getSession(false);
+        log.debug("{} getting jsessionId from cookies", apiRequestResolver.getCorrelationId());
+//        if (session != null) {
+//            checkAndUpdateSessionData(apiRequestResolver, sessionId, getExistingSessionData(session.getId()));
+//        } else
+        if(cookies.containsKey(SESSION_ID) && StringUtils.isNotEmpty(cookies.get(SESSION_ID))){
+            sessionId = cookies.get(SESSION_ID);
             checkAndUpdateSessionData(apiRequestResolver, sessionId, getExistingSessionData(cookies.get(SESSION_ID)));
         } else {
             sessionId = UUID.randomUUID().toString();
@@ -92,7 +96,7 @@ public class CommonService extends Constants {
         return apiRequestResolver;
     }
 
-    public boolean checkIfUserIsLoggedIn(String userId, Map<String, String> sessionData){
+    private boolean checkIfUserIsLoggedIn(String userId, Map<String, String> sessionData){
         return sessionData.containsKey(IS_LOGGED_IN) && TRUE.equalsIgnoreCase(sessionData.get(IS_LOGGED_IN))
                 && sessionData.containsKey(USER_ID) && StringUtils.isNotEmpty(userId) && userId.equals(sessionData.get(USER_ID));
     }
@@ -156,5 +160,11 @@ public class CommonService extends Constants {
     private String createLoggerString(ApiRequestResolver apiRequestResolver){
         return CORRELATION_ID.concat(" :: ").concat(apiRequestResolver.getCorrelationId()).concat(COMMA)
                 .concat(EMPTY_SPACE).concat(SESSION_ID).concat(" :: ").concat(apiRequestResolver.getApiKey());
+    }
+
+    public void updateUserIdInRedisInSessionData(ApiRequestResolver apiRequestResolver){
+        log.info("{} starting to store userId {} in session data in redis", apiRequestResolver.getLoggerString(), apiRequestResolver.getUserId());
+        redisManager.setHashValue(REDIS_SESSION_PREFIX.concat(apiRequestResolver.getSessionId()), USER_ID, apiRequestResolver.getUserId());
+        redisManager.setHashValue(REDIS_SESSION_PREFIX.concat(apiRequestResolver.getSessionId()), IS_LOGGED_IN, TRUE);
     }
 }
