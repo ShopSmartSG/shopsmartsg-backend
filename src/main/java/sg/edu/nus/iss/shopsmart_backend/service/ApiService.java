@@ -7,40 +7,73 @@ import io.swagger.v3.core.util.Json;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 import sg.edu.nus.iss.shopsmart_backend.model.ApiRequestResolver;
 import sg.edu.nus.iss.shopsmart_backend.model.ApiResponseResolver;
-import sg.edu.nus.iss.shopsmart_backend.utils.ApplicationConstants;
+import sg.edu.nus.iss.shopsmart_backend.model.DataDynamicObject;
+import sg.edu.nus.iss.shopsmart_backend.utils.Constants;
+import sg.edu.nus.iss.shopsmart_backend.utils.RedisManager;
+import sg.edu.nus.iss.shopsmart_backend.utils.Utils;
 import sg.edu.nus.iss.shopsmart_backend.utils.WSUtils;
 
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @Service
-public class ApiService extends ApplicationConstants {
+public class ApiService extends Constants {
     private static final Logger log = LoggerFactory.getLogger(ApiService.class);
     private final ObjectMapper mapper = Json.mapper();
 
     private final WSUtils wsUtils;
+    private final RedisManager redisManager;
 
     @Autowired
-    public ApiService(WSUtils wsUtils) {
+    public ApiService(WSUtils wsUtils, RedisManager redisManager) {
         this.wsUtils = wsUtils;
+        this.redisManager = redisManager;
     }
 
     public CompletableFuture<ApiResponseResolver> processApiRequest(ApiRequestResolver apiRequestResolver){
         log.info("{} Processing API request for key: {}", apiRequestResolver.getLoggerString(), apiRequestResolver.getApiKey());
         log.debug("{} Processing API request for key: {} with request object: {}, headers {} and queryParams {}", apiRequestResolver.getLoggerString(), apiRequestResolver.getApiKey(),
                 apiRequestResolver.getRequestBody(), apiRequestResolver.getHeaders(), apiRequestResolver.getQueryParams());
+        ApiResponseResolver apiResponseResolver = new ApiResponseResolver();
+        String apiKey = apiRequestResolver.getApiKey();
+        DataDynamicObject ddo = redisManager.getDdoData(apiKey);
+        if (ddo == null) {
+            log.error("No ddo configuration found for the api key: {}", apiKey);
+            apiResponseResolver.setStatusCode(HttpStatus.NOT_ACCEPTABLE);
+            ObjectNode responseData = mapper.createObjectNode();
+            responseData.put(MESSAGE, "API ".concat(apiKey).concat(EMPTY_SPACE).concat("not supported in the system"));
+            apiResponseResolver.setRespData(responseData);
+            return CompletableFuture.completedFuture(apiResponseResolver);
+        }
+        Map<String, String> queryParams = apiRequestResolver.getQueryParams();
+        String additionalUriData = apiRequestResolver.getAdditionalUriData();
+
+        String serviceUrl = redisManager.getServiceEndpoint(ddo.getService());
+        String apiEndpoint = serviceUrl.concat(ddo.getApi());
+        if (additionalUriData != null && !additionalUriData.isEmpty()) {
+            apiEndpoint = apiEndpoint.concat(SLASH).concat(additionalUriData);
+        }
+
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(apiEndpoint);
+        if (queryParams != null && !queryParams.isEmpty()) {
+            queryParams.forEach(uriBuilder::queryParam);
+        }
+        HttpMethod method = Utils.getHttpMethod(ddo.getMethod());
+
         //first perform JWT validation or have validated data passed in apiRequestResolver.
         //then if needed reconstruct the request object
         JsonNode requestBody = addCommonFieldsToRequest(apiRequestResolver);
-        return wsUtils.makeWSCall(apiRequestResolver.getApiKey(), requestBody,
-                apiRequestResolver.getHeaders(), apiRequestResolver.getQueryParams(), apiRequestResolver.getAdditionalUriData()).thenApplyAsync(response -> {
+        return wsUtils.makeWSCall(uriBuilder.toUriString(), requestBody,
+                apiRequestResolver.getHeaders(), method, ddo.getConnectTimeout(), ddo.getReadTimeout()).thenApplyAsync(response -> {
             log.debug("{} Received response for API key: {}", apiRequestResolver.getLoggerString(), apiRequestResolver.getApiKey());
-            ApiResponseResolver apiResponseResolver = new ApiResponseResolver();
             apiResponseResolver.setStatusCode(response.getHttpStatusCode());
-            if(response.getHttpStatusCode() == HttpStatus.OK){
+            if(SUCCESS.equalsIgnoreCase(response.getStatus())){
                 log.info("{} Success :: For the API key: {} received response {}", apiRequestResolver.getLoggerString(),
                         apiRequestResolver.getApiKey(), response);
                 JsonNode respData = response.getData();

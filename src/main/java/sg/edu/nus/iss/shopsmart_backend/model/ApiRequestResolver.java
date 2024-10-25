@@ -16,9 +16,11 @@ public class ApiRequestResolver {
     private Map<String, String> headers;
     private Map<String, String> queryParams;
     private Map<String, String> cookies;
+    private Map<String, String> sessionAttributes;
     private JsonNode requestBody;
     private String loggerString;
     private Map<String, String> jwtClaims;
     private String userId;
     private String jwtToken;
+    private boolean isLoggedIn;
 }

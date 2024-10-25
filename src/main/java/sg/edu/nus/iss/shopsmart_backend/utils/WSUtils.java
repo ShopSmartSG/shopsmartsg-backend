@@ -12,8 +12,6 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
-import sg.edu.nus.iss.shopsmart_backend.model.DataDynamicObject;
 import sg.edu.nus.iss.shopsmart_backend.model.Response;
 
 import java.time.Duration;
@@ -22,17 +20,14 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @Service
-public class WSUtils extends ApplicationConstants {
+public class WSUtils extends Constants {
     private static final Logger log = LoggerFactory.getLogger(WSUtils.class);
     private final ObjectMapper mapper = Json.mapper();
-
-    private final RedisManager redisManager;
 
     private final RestTemplateBuilder restTemplateBuilder;
 
     @Autowired
-    public WSUtils(RedisManager redisManager, RestTemplateBuilder restTemplateBuilder) {
-        this.redisManager = redisManager;
+    public WSUtils(RestTemplateBuilder restTemplateBuilder) {
         this.restTemplateBuilder = restTemplateBuilder;
     }
 
@@ -42,56 +37,38 @@ public class WSUtils extends ApplicationConstants {
                 .build();
     }
 
-    public CompletableFuture<Response> makeWSCall(String apiKey, JsonNode data, Map<String, String> headers,
-                                                  Map<String, String> queryParams, String additionalUriData) {
+//    public CompletableFuture<Response> makeWSCall(String apiKey, JsonNode data, Map<String, String> headers,
+//                                                  Map<String, String> queryParams, String additionalUriData)
+
+    public CompletableFuture<Response> makeWSCall(String url, JsonNode data, Map<String, String> headers, HttpMethod method,
+                                                  long connectTimeout, long readTImeout) {
         Response resp = new Response();
         ObjectNode responseData = mapper.createObjectNode();
-        log.info("Handling request for API: {}", apiKey);
-        DataDynamicObject ddo = redisManager.getDdoData(apiKey);
-        if (ddo == null) {
-            log.error("No ddo configuration found for the api key: {}", apiKey);
-            resp.setHttpStatusCode(HttpStatus.NOT_ACCEPTABLE);
-            responseData.put(MESSAGE, "API ".concat(apiKey).concat(EMPTY_SPACE).concat("not supported in the system"));
-            resp.setData(responseData);
-            return CompletableFuture.completedFuture(resp);
+        log.info("Handling request for url: {}", url);
+        RestTemplate restTemplate = restTemplateSync(connectTimeout, readTImeout);
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        headers.forEach(httpHeaders::set);
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<JsonNode> request;
+        if (data != null && !data.isNull() && !data.isEmpty()) {
+            request = new HttpEntity<>(data, httpHeaders);
+        } else {
+            request = new HttpEntity<>(httpHeaders);
         }
+        log.info("Making:: rest {} url call for {}, with request data: {}", method, url, data);
         return CompletableFuture.supplyAsync(() -> {
-            HttpMethod method = getHttpMethod(ddo.getMethod());
-            RestTemplate restTemplate = restTemplateSync(ddo.getConnectTimeout(), ddo.getReadTimeout());
-            String serviceUrl = redisManager.getServiceEndpoint(ddo.getService());
-
-            String apiEndpoint = serviceUrl.concat(ddo.getApi());
-            if (additionalUriData != null && !additionalUriData.isEmpty()) {
-                apiEndpoint = apiEndpoint.concat(SLASH).concat(additionalUriData);
-            }
-
-            UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(apiEndpoint);
-            if (queryParams != null && !queryParams.isEmpty()) {
-                queryParams.forEach(uriBuilder::queryParam);
-            }
-
-            HttpHeaders httpHeaders = new HttpHeaders();
-            headers.forEach(httpHeaders::set);
-            httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-
-            HttpEntity<JsonNode> request;
-            if (data != null && !data.isEmpty()) {
-                request = new HttpEntity<>(data, httpHeaders);
-            } else {
-                request = new HttpEntity<>(httpHeaders);
-            }
-            log.info("Making:: rest {} API {} call for {}, with request data: {}", method, apiKey, apiEndpoint, data);
-            ResponseEntity<?> response = restTemplate.exchange(uriBuilder.toUriString(), method, request, Object.class);
-
+            ResponseEntity<?> response = restTemplate.exchange(url, method, request, Object.class);
             resp.setHttpStatusCode(response.getStatusCode());
             if(response.getBody()!=null){
                 if(response.getStatusCode() == HttpStatus.OK || response.getStatusCode() == HttpStatus.CREATED
                         || response.getStatusCode() == HttpStatus.ACCEPTED){
-                    log.info("Success:: rest {} API {} call for {} gave status : {}", method, apiKey, apiEndpoint, response.getStatusCode());
+                    log.info("Success:: rest {} url call for {} gave status : {}", method, url, response.getStatusCode());
                     resp.setStatus(SUCCESS);
                 }else{
-                    log.error("Failed:: rest {} API {} call for {} with status code: {} and error {}", method, apiKey,
-                            apiEndpoint, response.getStatusCode(), response.getBody());
+                    log.error("Failed:: rest {} url call for {} with status code: {} and error {}", method, url,
+                            response.getStatusCode(), response.getBody());
                     resp.setStatus(FAILURE);
                     resp.setErrorCode(response.getStatusCode().toString());
                 }
@@ -108,32 +85,23 @@ public class WSUtils extends ApplicationConstants {
                         resp.setData(responseData);
                         return resp;
                     } catch (Exception e) {
-                        log.error("Failed:: to parse response body for the api {} with error: ", apiKey, e);
-                        responseData.put(MESSAGE, "Failed to parse api ".concat(apiKey).concat(EMPTY_SPACE).concat(RESPONSE));
+                        log.error("Failed:: to parse response body for the url {} with error: ", url, e);
+                        responseData.put(MESSAGE, "Failed to resolve url ".concat(url).concat(EMPTY_SPACE).concat("with response: ").concat(RESPONSE));
                         resp.setData(responseData);
                         return resp;
                     }
                 } else {
-                    log.error("Exception:: Unexpected response body type: {} for apiKey {}", response.getBody().getClass(), apiKey);
-                    responseData.put(MESSAGE, "Exception occurred due to unidentified body type for api ".concat(apiKey).concat(EMPTY_SPACE).concat(RESPONSE));
+                    log.error("Exception:: Unexpected response body type: {} for url {}", response.getBody().getClass(), url);
+                    responseData.put(MESSAGE, "Exception occurred due to unidentified body type for url ".concat(url)
+                            .concat(EMPTY_SPACE).concat("with response: ").concat(RESPONSE));
                     resp.setData(responseData);
                     return resp;
                 }
             } else {
-                responseData.put(MESSAGE, "No body found for api ".concat(apiKey).concat(EMPTY_SPACE).concat(RESPONSE));
+                responseData.put(MESSAGE, "No response body found for url ".concat(url).concat(EMPTY_SPACE).concat(RESPONSE));
                 resp.setData(responseData);
                 return resp;
             }
         });
-    }
-
-    private HttpMethod getHttpMethod(String method){
-        return switch (method) {
-            case "POST" -> HttpMethod.POST;
-            case "PUT" -> HttpMethod.PUT;
-            case "DELETE" -> HttpMethod.DELETE;
-            case "PATCH" -> HttpMethod.PATCH;
-            default -> HttpMethod.GET;
-        };
     }
 }

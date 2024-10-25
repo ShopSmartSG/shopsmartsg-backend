@@ -1,19 +1,33 @@
 package sg.edu.nus.iss.shopsmart_backend.utils;
 
-public class ApplicationConstants {
-    protected static final String STATUS = "status";
-    protected static final String STATUS_CODE = "statusCode";
-    protected static final String SUCCESS = "success";
-    protected static final String FAILURE = "failure";
-    protected static final String DATA = "data";
-    protected static final String MESSAGE = "message";
-    protected static final String RESPONSE = "response";
-    protected static final String EMPTY_SPACE = " ";
-    protected static final String USER_ID = "userId";
-    protected static final String JWT_TOKEN = "jwtToken";
-    protected static final String IP_ADDRESS = "ipAddress";
-    protected static final String COMMON = "common";
-    protected static final String SLASH = "/";
-    protected static final String REQ_URI = "requestUri";
-    protected static final String ADDITIONAL_URI_DATA = "additionalUriData";
+public interface ApplicationConstants {
+    String STATUS = "status";
+    String STATUS_CODE = "statusCode";
+    String SUCCESS = "success";
+    String FAILURE = "failure";
+    String DATA = "data";
+    String MESSAGE = "message";
+    String RESPONSE = "response";
+    String EMPTY_SPACE = " ";
+    String COMMA = ",";
+    String USER_ID = "userId";
+    String JWT_TOKEN = "jwtToken";
+    String IP_ADDRESS = "ipAddress";
+    String COMMON = "common";
+    String SLASH = "/";
+    String REQ_URI = "requestUri";
+    String ADDITIONAL_URI_DATA = "additionalUriData";
+    String EMAIL = "email";
+    String OTP = "otp";
+    String CREATED_AT = "createdAt";
+    String VALID_TILL = "validTill";
+    String SESSION_ID = "sessionId";
+    String CORRELATION_ID = "correlationId";
+    String IS_LOGGED_IN = "isLoggedIn";
+    String TRUE = "true";
+    String FALSE = "false";
+    String CUSTOMER = "customer";
+    String MERCHANT = "merchant";
+    String ADMIN = "admin";
+    String ADMIN_USER_ID = "admin123456789";
 }

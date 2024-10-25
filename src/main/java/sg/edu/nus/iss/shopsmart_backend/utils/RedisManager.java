@@ -14,9 +14,10 @@ import redis.clients.jedis.JedisPool;
 import sg.edu.nus.iss.shopsmart_backend.model.DataDynamicObject;
 
 import java.util.Map;
+import java.util.Optional;
 
 @Service
-public class RedisManager extends RedisKeys {
+public class RedisManager extends Constants {
     private static final Logger log = LoggerFactory.getLogger(RedisManager.class);
     private final ObjectMapper mapper = Json.mapper();
 
@@ -38,6 +39,20 @@ public class RedisManager extends RedisKeys {
         log.debug("Setting hash map for redis key: {}", key);
         try(Jedis jedis = jedisPool.getResource()){
             jedis.hset(key, hashMap);
+        }
+    }
+
+    public void expire(String key, long ttl){
+        log.debug("Setting expiry for redis key: {} with ttl as {}", key, ttl);
+        try(Jedis jedis = jedisPool.getResource()){
+            jedis.expire(key, ttl);
+        }
+    }
+
+    public void deleteKey(String key){
+        log.debug("Deleting redis key: {}", key);
+        try(Jedis jedis = jedisPool.getResource()){
+            jedis.del(key);
         }
     }
 

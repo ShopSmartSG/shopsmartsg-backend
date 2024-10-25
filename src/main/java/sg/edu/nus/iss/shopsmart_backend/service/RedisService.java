@@ -9,13 +9,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import sg.edu.nus.iss.shopsmart_backend.model.DataDynamicObject;
-import sg.edu.nus.iss.shopsmart_backend.utils.RedisKeys;
+import sg.edu.nus.iss.shopsmart_backend.utils.Constants;
 import sg.edu.nus.iss.shopsmart_backend.utils.RedisManager;
 
 import java.util.Map;
 
 @Service
-public class RedisService extends RedisKeys {
+public class RedisService extends Constants {
     private static final Logger log = LoggerFactory.getLogger(RedisService.class);
     private final ObjectMapper mapper = Json.mapper();
 

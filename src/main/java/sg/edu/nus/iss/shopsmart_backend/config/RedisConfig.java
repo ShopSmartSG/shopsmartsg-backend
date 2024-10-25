@@ -8,10 +8,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
-import sg.edu.nus.iss.shopsmart_backend.utils.RedisKeys;
+import sg.edu.nus.iss.shopsmart_backend.utils.Constants;
 
 @Configuration
-public class RedisConfig extends RedisKeys {
+public class RedisConfig extends Constants {
     private static final Logger log = LoggerFactory.getLogger(RedisConfig.class);
 
     @Value("${"+REDIS_HOST_KEY+"}")
