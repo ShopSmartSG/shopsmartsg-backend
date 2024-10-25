@@ -21,7 +21,7 @@ public interface ApplicationConstants {
     String OTP = "otp";
     String CREATED_AT = "createdAt";
     String VALID_TILL = "validTill";
-    String SESSION_ID = "JESSIONID";
+    String SESSION_ID = "JSESSIONID";
     String CORRELATION_ID = "correlationId";
     String IS_LOGGED_IN = "isLoggedIn";
     String TRUE = "true";

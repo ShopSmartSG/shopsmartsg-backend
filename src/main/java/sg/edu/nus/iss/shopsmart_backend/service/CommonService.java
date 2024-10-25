@@ -159,7 +159,7 @@ public class CommonService extends Constants {
 
     private String createLoggerString(ApiRequestResolver apiRequestResolver){
         return CORRELATION_ID.concat(" :: ").concat(apiRequestResolver.getCorrelationId()).concat(COMMA)
-                .concat(EMPTY_SPACE).concat(SESSION_ID).concat(" :: ").concat(apiRequestResolver.getApiKey());
+                .concat(EMPTY_SPACE).concat(SESSION_ID).concat(" :: ").concat(apiRequestResolver.getSessionId());
     }
 
     public void updateUserIdInRedisInSessionData(ApiRequestResolver apiRequestResolver){
