@@ -12,6 +12,7 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import sg.edu.nus.iss.shopsmart_backend.exception.CustomerResponseErrorHandler;
 import sg.edu.nus.iss.shopsmart_backend.model.Response;
 
 import java.time.Duration;
@@ -36,6 +37,7 @@ public class WSUtils extends Constants {
     public RestTemplate restTemplateSync(long connectTimeout, long readTimeout) {
         return restTemplateBuilder.setConnectTimeout(Duration.ofMillis(connectTimeout))
                 .setReadTimeout(Duration.ofMillis(readTimeout))
+                .errorHandler(new CustomerResponseErrorHandler())
                 .build();
     }
 
@@ -55,11 +57,11 @@ public class WSUtils extends Constants {
 
 
     public CompletableFuture<Response> makeWSCallObject(String url, JsonNode data, Map<String, String> headers, HttpMethod method,
-                                                  long connectTimeout, long readTImeout) {
+                                                  long connectTimeout, long readTimeout) {
         Response resp = new Response();
         ObjectNode responseData = mapper.createObjectNode();
         log.info("ObjectWS :: Handling request for url: {}", url);
-        RestTemplate restTemplate = restTemplateSync(connectTimeout, readTImeout);
+        RestTemplate restTemplate = restTemplateSync(connectTimeout, readTimeout);
 
         HttpHeaders httpHeaders = new HttpHeaders();
         headers.forEach(httpHeaders::set);
@@ -132,11 +134,11 @@ public class WSUtils extends Constants {
     }
 
     public CompletableFuture<Response> makeWSCallString(String url, JsonNode data, Map<String, String> headers, HttpMethod method,
-                                                  long connectTimeout, long readTImeout) {
+                                                  long connectTimeout, long readTimeout) {
         Response resp = new Response();
         ObjectNode responseData = mapper.createObjectNode();
         log.info("StringWS :: Handling request for url: {}", url);
-        RestTemplate restTemplate = restTemplateSync(connectTimeout, readTImeout);
+        RestTemplate restTemplate = restTemplateSync(connectTimeout, readTimeout);
 
         HttpHeaders httpHeaders = new HttpHeaders();
         headers.forEach(httpHeaders::set);
@@ -151,7 +153,7 @@ public class WSUtils extends Constants {
         }
         log.info("StringWS :: Making:: rest {} url call for {}, with request data: {}", method, url, data);
         return CompletableFuture.supplyAsync(() -> {
-            ResponseEntity<?> response = restTemplate.exchange(url, method, request, String.class);
+            ResponseEntity<String> response = restTemplate.exchange(url, method, request, String.class);
             resp.setHttpStatusCode(response.getStatusCode());
             if(response.getBody()!=null){
                 if(response.getStatusCode() == HttpStatus.OK || response.getStatusCode() == HttpStatus.CREATED
@@ -175,13 +177,6 @@ public class WSUtils extends Constants {
                         resp.setData(responseData);
                     }
                     return resp;
-                } else if (response.getBody() instanceof JsonNode || response.getBody() instanceof ArrayNode
-                        || response.getBody() instanceof ObjectNode) {
-                    resp.setData((JsonNode) response.getBody());
-                    return resp;
-                } else if (response.getBody() instanceof ArrayList) {
-                    resp.setData(mapper.convertValue(response.getBody(), JsonNode.class));
-                    return resp;
                 } else if (response.getBody() instanceof String) {
                     try {
                         responseData.put(MESSAGE, ((String) response.getBody()));
@@ -189,19 +184,19 @@ public class WSUtils extends Constants {
                         return resp;
                     } catch (Exception e) {
                         log.error("StringWS :: Failed:: to parse response body for the url {} with error: ", url, e);
-                        responseData.put(MESSAGE, "Failed to resolve url ".concat(url).concat(EMPTY_SPACE).concat("with response: ").concat(RESPONSE));
+                        responseData.put(MESSAGE, "Failed to resolve url ".concat(url).concat(" with response: ").concat(response.toString()));
                         resp.setData(responseData);
                         return resp;
                     }
                 } else {
                     log.error("StringWS :: Exception:: Unexpected response body type: {} for url {}", response.getBody().getClass(), url);
                     responseData.put(MESSAGE, "Exception occurred due to unidentified body type for url ".concat(url)
-                            .concat(EMPTY_SPACE).concat("with response: ").concat(RESPONSE));
+                            .concat(" with response: ").concat(response.getBody().toString()));
                     resp.setData(responseData);
                     return resp;
                 }
             } else {
-                responseData.put(MESSAGE, "No response body found for url ".concat(url).concat(EMPTY_SPACE).concat(RESPONSE));
+                responseData.put(MESSAGE, "No response body found for url ".concat(url).concat(" with response: ").concat(response.toString()));
                 resp.setData(responseData);
                 return resp;
             }
