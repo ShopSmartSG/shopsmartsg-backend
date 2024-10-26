@@ -47,7 +47,7 @@ public class WSUtils extends Constants {
         if(returnClassType.equalsIgnoreCase("String")){
             return makeWSCallString(url, data, headers, method, connectTimeout, readTImeout);
         } else if(returnClassType.equalsIgnoreCase("uuid")){
-            return makeWSCallObject(url, data, headers, method, connectTimeout, readTImeout);
+            return makeWSCallUuid(url, data, headers, method, connectTimeout, readTImeout);
         } else{
             return makeWSCallObject(url, data, headers, method, connectTimeout, readTImeout);
         }
