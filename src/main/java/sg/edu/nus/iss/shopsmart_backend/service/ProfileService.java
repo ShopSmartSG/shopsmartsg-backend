@@ -308,7 +308,7 @@ public class ProfileService extends Constants {
             log.info("{} Admin profile type has a hard coded userId : {}", apiRequestResolver.getLoggerString(), adminUserId);
             return CompletableFuture.completedFuture(adminUserId);
         }
-        String ddoToGetProfileId = Utils.ddoCreateProfileByType(profileType);
+        String ddoToGetProfileId = Utils.getDdoForFetchProfileIdByType(profileType);
         if(ddoToGetProfileId == null){
             log.error("{} Unsupported profile type for fetching user id for email", apiRequestResolver.getLoggerString());
             return CompletableFuture.completedFuture("");
