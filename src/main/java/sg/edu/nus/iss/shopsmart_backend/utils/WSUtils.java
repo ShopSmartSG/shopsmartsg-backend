@@ -181,7 +181,7 @@ public class WSUtils extends Constants {
                 } else if (response.getBody() instanceof String) {
                     try {
                         log.debug("StringWS ::Success :: rest {} url call for {} gave status : {} when instanceof string.", method, url, response.getStatusCode());
-                        responseData.put(MESSAGE, response.getBody());
+                        responseData.set(MESSAGE, response.getBody());
                         resp.setData(responseData);
                         return resp;
                     } catch (Exception e) {
