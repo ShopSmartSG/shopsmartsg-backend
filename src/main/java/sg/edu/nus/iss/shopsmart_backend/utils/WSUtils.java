@@ -55,7 +55,7 @@ public class WSUtils extends Constants {
                                                   long connectTimeout, long readTImeout) {
         Response resp = new Response();
         ObjectNode responseData = mapper.createObjectNode();
-        log.info("Handling request for url: {}", url);
+        log.info("ObjectWS :: Handling request for url: {}", url);
         RestTemplate restTemplate = restTemplateSync(connectTimeout, readTImeout);
 
         HttpHeaders httpHeaders = new HttpHeaders();
@@ -69,17 +69,17 @@ public class WSUtils extends Constants {
         } else {
             request = new HttpEntity<>(httpHeaders);
         }
-        log.info("Making:: rest {} url call for {}, with request data: {}", method, url, data);
+        log.info("ObjectWS :: Making:: rest {} url call for {}, with request data: {}", method, url, data);
         return CompletableFuture.supplyAsync(() -> {
             ResponseEntity<?> response = restTemplate.exchange(url, method, request, Object.class);
             resp.setHttpStatusCode(response.getStatusCode());
             if(response.getBody()!=null){
                 if(response.getStatusCode() == HttpStatus.OK || response.getStatusCode() == HttpStatus.CREATED
                         || response.getStatusCode() == HttpStatus.ACCEPTED){
-                    log.info("Success:: rest {} url call for {} gave status : {}", method, url, response.getStatusCode());
+                    log.info("ObjectWS :: Success:: rest {} url call for {} gave status : {}", method, url, response.getStatusCode());
                     resp.setStatus(SUCCESS);
                 }else{
-                    log.error("Failed:: rest {} url call for {} with status code: {} and error {}", method, url,
+                    log.error("ObjectWS :: Failed:: rest {} url call for {} with status code: {} and error {}", method, url,
                             response.getStatusCode(), response.getBody());
                     resp.setStatus(FAILURE);
                     resp.setErrorCode(response.getStatusCode().toString());
@@ -90,7 +90,7 @@ public class WSUtils extends Constants {
                         responseData.put(MESSAGE, response.getBody().toString());
                         resp.setData(responseData);
                     } catch (Exception e) {
-                        log.error("Failed:: to parse text/plain response body for the url {} with error: ", url, e);
+                        log.error("ObjectWS :: Failed:: to parse text/plain response body for the url {} with error: ", url, e);
                         responseData.put(MESSAGE, "Failed to resolve url ".concat(url).concat(" with response: ").concat(RESPONSE));
                         resp.setData(responseData);
                     }
@@ -108,13 +108,13 @@ public class WSUtils extends Constants {
                         resp.setData(responseData);
                         return resp;
                     } catch (Exception e) {
-                        log.error("Failed:: to parse response body for the url {} with error: ", url, e);
+                        log.error("ObjectWS :: Failed:: to parse response body for the url {} with error: ", url, e);
                         responseData.put(MESSAGE, "Failed to resolve url ".concat(url).concat(EMPTY_SPACE).concat("with response: ").concat(RESPONSE));
                         resp.setData(responseData);
                         return resp;
                     }
                 } else {
-                    log.error("Exception:: Unexpected response body type: {} for url {}", response.getBody().getClass(), url);
+                    log.error("ObjectWS :: Exception:: Unexpected response body type: {} for url {}", response.getBody().getClass(), url);
                     responseData.put(MESSAGE, "Exception occurred due to unidentified body type for url ".concat(url)
                             .concat(EMPTY_SPACE).concat("with response: ").concat(RESPONSE));
                     resp.setData(responseData);
@@ -132,7 +132,7 @@ public class WSUtils extends Constants {
                                                   long connectTimeout, long readTImeout) {
         Response resp = new Response();
         ObjectNode responseData = mapper.createObjectNode();
-        log.info("Handling request for url: {}", url);
+        log.info("StringWS :: Handling request for url: {}", url);
         RestTemplate restTemplate = restTemplateSync(connectTimeout, readTImeout);
 
         HttpHeaders httpHeaders = new HttpHeaders();
@@ -146,17 +146,17 @@ public class WSUtils extends Constants {
         } else {
             request = new HttpEntity<>(httpHeaders);
         }
-        log.info("Making:: rest {} url call for {}, with request data: {}", method, url, data);
+        log.info("StringWS :: Making:: rest {} url call for {}, with request data: {}", method, url, data);
         return CompletableFuture.supplyAsync(() -> {
             ResponseEntity<?> response = restTemplate.exchange(url, method, request, String.class);
             resp.setHttpStatusCode(response.getStatusCode());
             if(response.getBody()!=null){
                 if(response.getStatusCode() == HttpStatus.OK || response.getStatusCode() == HttpStatus.CREATED
                         || response.getStatusCode() == HttpStatus.ACCEPTED){
-                    log.info("Success:: rest {} url call for {} gave status : {}", method, url, response.getStatusCode());
+                    log.info("StringWS ::Success:: rest {} url call for {} gave status : {}", method, url, response.getStatusCode());
                     resp.setStatus(SUCCESS);
                 }else{
-                    log.error("Failed:: rest {} url call for {} with status code: {} and error {}", method, url,
+                    log.error("StringWS ::Failed:: rest {} url call for {} with status code: {} and error {}", method, url,
                             response.getStatusCode(), response.getBody());
                     resp.setStatus(FAILURE);
                     resp.setErrorCode(response.getStatusCode().toString());
@@ -167,7 +167,7 @@ public class WSUtils extends Constants {
                         responseData.put(MESSAGE, response.getBody().toString());
                         resp.setData(responseData);
                     } catch (Exception e) {
-                        log.error("Failed:: to parse text/plain response body for the url {} with error: ", url, e);
+                        log.error("StringWS :: Failed:: to parse text/plain response body for the url {} with error: ", url, e);
                         responseData.put(MESSAGE, "Failed to resolve url ".concat(url).concat(" with response: ").concat(RESPONSE));
                         resp.setData(responseData);
                     }
@@ -181,17 +181,17 @@ public class WSUtils extends Constants {
                     return resp;
                 } else if (response.getBody() instanceof String) {
                     try {
-                        responseData.set(MESSAGE, mapper.readTree((String) response.getBody()));
+                        responseData.put(MESSAGE, ((String) response.getBody()));
                         resp.setData(responseData);
                         return resp;
                     } catch (Exception e) {
-                        log.error("Failed:: to parse response body for the url {} with error: ", url, e);
+                        log.error("StringWS :: Failed:: to parse response body for the url {} with error: ", url, e);
                         responseData.put(MESSAGE, "Failed to resolve url ".concat(url).concat(EMPTY_SPACE).concat("with response: ").concat(RESPONSE));
                         resp.setData(responseData);
                         return resp;
                     }
                 } else {
-                    log.error("Exception:: Unexpected response body type: {} for url {}", response.getBody().getClass(), url);
+                    log.error("StringWS :: Exception:: Unexpected response body type: {} for url {}", response.getBody().getClass(), url);
                     responseData.put(MESSAGE, "Exception occurred due to unidentified body type for url ".concat(url)
                             .concat(EMPTY_SPACE).concat("with response: ").concat(RESPONSE));
                     resp.setData(responseData);
