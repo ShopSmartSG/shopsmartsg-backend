@@ -238,7 +238,7 @@ public class ProfileService extends Constants {
     }
     private CompletableFuture<Boolean> createProfile(ApiRequestResolver apiRequestResolver, String profileType){
         log.info("{} Starting to create profile for request {}", apiRequestResolver.getLoggerString(), apiRequestResolver.getRequestBody());
-        String ddoToGetProfileId = Utils.getDdoForFetchProfileIdByType(profileType);
+        String ddoToGetProfileId = Utils.ddoCreateProfileByType(profileType);
         if(ddoToGetProfileId == null){
             log.error("{} Unsupported profile type for creating profile", apiRequestResolver.getLoggerString());
             return CompletableFuture.completedFuture(false);
