@@ -37,6 +37,10 @@ public class WSUtils extends Constants {
     public RestTemplate restTemplateSync(long connectTimeout, long readTimeout) {
         return restTemplateBuilder.setConnectTimeout(Duration.ofMillis(connectTimeout))
                 .setReadTimeout(Duration.ofMillis(readTimeout))
+                .additionalInterceptors((request, body, execution) -> {
+                    request.getHeaders().set("Transfer-Encoding", "chunked");
+                    return execution.execute(request, body);
+                })
                 .errorHandler(new CustomerResponseErrorHandler())
                 .build();
     }
