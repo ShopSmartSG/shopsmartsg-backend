@@ -18,6 +18,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -45,7 +46,9 @@ public class WSUtils extends Constants {
                                                   long connectTimeout, long readTImeout, String returnClassType){
         if(returnClassType.equalsIgnoreCase("String")){
             return makeWSCallString(url, data, headers, method, connectTimeout, readTImeout);
-        }else{
+        } else if(returnClassType.equalsIgnoreCase("uuid")){
+            return makeWSCallObject(url, data, headers, method, connectTimeout, readTImeout);
+        } else{
             return makeWSCallObject(url, data, headers, method, connectTimeout, readTImeout);
         }
     }
@@ -192,6 +195,76 @@ public class WSUtils extends Constants {
                     }
                 } else {
                     log.error("StringWS :: Exception:: Unexpected response body type: {} for url {}", response.getBody().getClass(), url);
+                    responseData.put(MESSAGE, "Exception occurred due to unidentified body type for url ".concat(url)
+                            .concat(EMPTY_SPACE).concat("with response: ").concat(RESPONSE));
+                    resp.setData(responseData);
+                    return resp;
+                }
+            } else {
+                responseData.put(MESSAGE, "No response body found for url ".concat(url).concat(EMPTY_SPACE).concat(RESPONSE));
+                resp.setData(responseData);
+                return resp;
+            }
+        });
+    }
+
+    public CompletableFuture<Response> makeWSCallUuid(String url, JsonNode data, Map<String, String> headers, HttpMethod method,
+                                                        long connectTimeout, long readTImeout) {
+        Response resp = new Response();
+        ObjectNode responseData = mapper.createObjectNode();
+        log.info("UuidWS :: Handling request for url: {}", url);
+        RestTemplate restTemplate = restTemplateSync(connectTimeout, readTImeout);
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        headers.forEach(httpHeaders::set);
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+        httpHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN));
+
+        HttpEntity<JsonNode> request;
+        if (data != null && !data.isNull() && !data.isEmpty()) {
+            request = new HttpEntity<>(data, httpHeaders);
+        } else {
+            request = new HttpEntity<>(httpHeaders);
+        }
+        log.info("UuidWS :: Making:: rest {} url call for {}, with request data: {}", method, url, data);
+        return CompletableFuture.supplyAsync(() -> {
+            ResponseEntity<?> response = restTemplate.exchange(url, method, request, UUID.class);
+            resp.setHttpStatusCode(response.getStatusCode());
+            if(response.getBody()!=null){
+                if(response.getStatusCode() == HttpStatus.OK || response.getStatusCode() == HttpStatus.CREATED
+                        || response.getStatusCode() == HttpStatus.ACCEPTED){
+                    log.info("UuidWS ::Success:: rest {} url call for {} gave status : {}", method, url, response.getStatusCode());
+                    resp.setStatus(SUCCESS);
+                }else{
+                    log.error("UuidWS ::Failed:: rest {} url call for {} with status code: {} and error {}", method, url,
+                            response.getStatusCode(), response.getBody());
+                    resp.setStatus(FAILURE);
+                    resp.setErrorCode(response.getStatusCode().toString());
+                }
+                if (response.getHeaders().getContentType() != null &&
+                        response.getHeaders().getContentType().includes(MediaType.TEXT_PLAIN)) {
+                    try {
+                        responseData.put(MESSAGE, response.getBody().toString());
+                        resp.setData(responseData);
+                    } catch (Exception e) {
+                        log.error("UuidWS :: Failed:: to parse text/plain response body for the url {} with error: ", url, e);
+                        responseData.put(MESSAGE, "Failed to resolve url ".concat(url).concat(" with response: ").concat(RESPONSE));
+                        resp.setData(responseData);
+                    }
+                    return resp;
+                } else if (response.getBody() instanceof UUID) {
+                    try {
+                        responseData.put(MESSAGE, response.getBody().toString());
+                        resp.setData(responseData);
+                        return resp;
+                    } catch (Exception e) {
+                        log.error("UuidWS :: Failed:: to parse response body for the url {} with error: ", url, e);
+                        responseData.put(MESSAGE, "Failed to resolve url ".concat(url).concat(EMPTY_SPACE).concat("with response: ").concat(RESPONSE));
+                        resp.setData(responseData);
+                        return resp;
+                    }
+                } else {
+                    log.error("UuidWS :: Exception:: Unexpected response body type: {} for url {}", response.getBody().getClass(), url);
                     responseData.put(MESSAGE, "Exception occurred due to unidentified body type for url ".concat(url)
                             .concat(EMPTY_SPACE).concat("with response: ").concat(RESPONSE));
                     resp.setData(responseData);
