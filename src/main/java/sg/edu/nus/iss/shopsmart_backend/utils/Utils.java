@@ -51,7 +51,10 @@ public class Utils extends Constants{
         sessionCookie.setHttpOnly(true);
         sessionCookie.setMaxAge(60 * 30); // 30 minutes
         response.addCookie(sessionCookie);
-//        response.setHeader("Set-Cookie", "SESSION=" + sessionId + "; Path=/; HttpOnly");
+
+        response.setHeader("Set-Cookie", SESSION_ID.concat(EQUALS).concat(sessionId)
+                .concat("; Path=/; HttpOnly; Max-Age=").concat(String.valueOf(60 * 30)));
+//        response.setHeader("Set-Cookie", SESSION_ID.concat(EQUALS) + sessionId + "; Path=/; HttpOnly");
         //handle session here.
 //        HttpSession session = request.getSession(false);
 //
@@ -70,12 +73,15 @@ public class Utils extends Constants{
             userIdCookie = new Cookie(USER_ID, null);
             userIdCookie.setPath(SLASH);
             userIdCookie.setMaxAge(0); // This will delete the cookie
+            response.setHeader("Set-Cookie", USER_ID.concat(EQUALS).concat("; Path=/; Max-Age=0"));
         } else {
             log.info("Setting user id {} in cookies", apiRequestResolver.getUserId());
             userIdCookie = new Cookie(USER_ID, apiRequestResolver.getUserId());
             userIdCookie.setPath(SLASH);
             userIdCookie.setHttpOnly(true);
             userIdCookie.setMaxAge(60 * 60 * 24 * 30); // 30 days
+            response.setHeader("Set-Cookie", USER_ID.concat(EQUALS).concat(apiRequestResolver.getUserId())
+                    .concat("; Path=/; HttpOnly; Max-Age=").concat(String.valueOf(60 * 60 * 24 * 30)));
         }
         response.addCookie(userIdCookie);
     }

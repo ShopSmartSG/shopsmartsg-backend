@@ -15,6 +15,7 @@ public interface ApplicationConstants {
     String IP_ADDRESS = "ipAddress";
     String COMMON = "common";
     String SLASH = "/";
+    String EQUALS = "=";
     String REQ_URI = "requestUri";
     String ADDITIONAL_URI_DATA = "additionalUriData";
     String EMAIL = "email";
