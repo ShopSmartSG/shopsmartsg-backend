@@ -45,15 +45,19 @@ public class Utils extends Constants{
                                                    HttpServletResponse response) {
         log.info("Setting session id {} in cookies and session attributes", apiRequestResolver.getSessionId());
         String sessionId = apiRequestResolver.getSessionId();
+        String domain = request.getServerName();
         // Set session ID in response cookies
         Cookie sessionCookie = new Cookie(SESSION_ID, sessionId);
         sessionCookie.setPath("/");
         sessionCookie.setHttpOnly(true);
+        sessionCookie.setDomain(domain);
         sessionCookie.setMaxAge(60 * 30); // 30 minutes
         response.addCookie(sessionCookie);
 
         response.addHeader("Set-Cookie", SESSION_ID.concat(EQUALS).concat(sessionId)
-                .concat("; Path=/; HttpOnly; Max-Age=").concat(String.valueOf(60 * 30)));
+                .concat("; Path=/; HttpOnly; Max-Age=").concat(String.valueOf(60 * 30))
+                .concat("; Domain=").concat(domain)
+                .concat("; SameSite=Lax"));
 //        response.setHeader("Set-Cookie", SESSION_ID.concat(EQUALS) + sessionId + "; Path=/; HttpOnly");
         //handle session here.
 //        HttpSession session = request.getSession(false);
@@ -66,22 +70,30 @@ public class Utils extends Constants{
 //        apiRequestResolver.getSessionAttributes().forEach(session::setAttribute);
     }
 
-    public void setUserIdCookieNeededOrRemove(ApiRequestResolver apiRequestResolver, HttpServletResponse response){
+    public void setUserIdCookieNeededOrRemove(ApiRequestResolver apiRequestResolver, HttpServletRequest request,
+                                              HttpServletResponse response){
+        String domain = request.getServerName();
         Cookie userIdCookie;
         if (apiRequestResolver.getUserId() == null || StringUtils.isEmpty(apiRequestResolver.getUserId()) || !apiRequestResolver.isLoggedIn()) {
             log.info("Removing user id cookie");
             userIdCookie = new Cookie(USER_ID, null);
             userIdCookie.setPath(SLASH);
+            userIdCookie.setDomain(domain);
             userIdCookie.setMaxAge(0); // This will delete the cookie
-            response.addHeader("Set-Cookie", USER_ID.concat(EQUALS).concat("; Path=/; Max-Age=0"));
+            response.addHeader("Set-Cookie", USER_ID.concat(EQUALS)
+                    .concat("; Path=/; Max-Age=0; Domain=")
+                    .concat(domain).concat("; SameSite=Lax"));
         } else {
             log.info("Setting user id {} in cookies", apiRequestResolver.getUserId());
             userIdCookie = new Cookie(USER_ID, apiRequestResolver.getUserId());
             userIdCookie.setPath(SLASH);
             userIdCookie.setHttpOnly(true);
+            userIdCookie.setDomain(domain);
             userIdCookie.setMaxAge(60 * 60 * 24 * 30); // 30 days
             response.addHeader("Set-Cookie", USER_ID.concat(EQUALS).concat(apiRequestResolver.getUserId())
-                    .concat("; Path=/; HttpOnly; Max-Age=").concat(String.valueOf(60 * 60 * 24 * 30)));
+                    .concat("; Path=/; HttpOnly; Max-Age=").concat(String.valueOf(60 * 60 * 24 * 30))
+                    .concat("; Domain=").concat(domain)
+                    .concat("; SameSite=Lax"));
         }
         response.addCookie(userIdCookie);
     }

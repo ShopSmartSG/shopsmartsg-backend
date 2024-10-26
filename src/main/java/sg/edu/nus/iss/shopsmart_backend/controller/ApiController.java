@@ -139,6 +139,6 @@ public class ApiController extends Constants {
             HttpServletResponse response) {
         log.info("{} starting to set required session and user cookies for general api flows.", apiRequestResolver.getLoggerString());
         utils.setSessionAndCookieDataForSession(apiRequestResolver, request, response);
-        utils.setUserIdCookieNeededOrRemove(apiRequestResolver, response);
+        utils.setUserIdCookieNeededOrRemove(apiRequestResolver, request, response);
     }
 }
