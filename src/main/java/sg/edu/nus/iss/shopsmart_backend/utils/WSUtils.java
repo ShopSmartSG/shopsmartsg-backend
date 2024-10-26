@@ -169,7 +169,7 @@ public class WSUtils extends Constants {
                 if (response.getHeaders().getContentType() != null &&
                         response.getHeaders().getContentType().includes(MediaType.TEXT_PLAIN)) {
                     try {
-                        responseData.put(MESSAGE, response.getBody().toString());
+                        responseData.put(MESSAGE, response.getBody());
                         resp.setData(responseData);
                     } catch (Exception e) {
                         log.error("StringWS :: Failed:: to parse text/plain response body for the url {} with error: ", url, e);

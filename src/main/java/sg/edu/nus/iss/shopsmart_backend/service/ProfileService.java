@@ -327,7 +327,8 @@ public class ProfileService extends Constants {
                 return "";
             }else{
                 log.info("{} User found for email: {} and it is : {}", apiRequestResolver.getLoggerString(), email, response.getData().get(USER_ID).asText());
-                return response.getData().get(USER_ID).asText();
+                //in ws call we are returning against message.
+                return response.getData().get(MESSAGE).asText();
             }
         });
     }
