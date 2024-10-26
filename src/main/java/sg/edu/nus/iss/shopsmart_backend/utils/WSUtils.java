@@ -169,6 +169,7 @@ public class WSUtils extends Constants {
                 if (response.getHeaders().getContentType() != null &&
                         response.getHeaders().getContentType().includes(MediaType.TEXT_PLAIN)) {
                     try {
+                        log.debug("StringWS ::Success :: rest {} url call for {} gave status : {} when matched with plain test", method, url, response.getStatusCode());
                         responseData.put(MESSAGE, response.getBody());
                         resp.setData(responseData);
                     } catch (Exception e) {
@@ -179,7 +180,8 @@ public class WSUtils extends Constants {
                     return resp;
                 } else if (response.getBody() instanceof String) {
                     try {
-                        responseData.put(MESSAGE, ((String) response.getBody()));
+                        log.debug("StringWS ::Success :: rest {} url call for {} gave status : {} when instanceof string.", method, url, response.getStatusCode());
+                        responseData.put(MESSAGE, response.getBody());
                         resp.setData(responseData);
                         return resp;
                     } catch (Exception e) {
