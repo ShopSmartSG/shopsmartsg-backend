@@ -200,7 +200,7 @@ public class ProfileService extends Constants {
         uriBuilder.queryParam(EMAIL, email);
         HttpMethod method = Utils.getHttpMethod(ddo.getMethod());
         return wsUtils.makeWSCall(uriBuilder.toUriString(), null, new HashMap<>(), method,
-                ddo.getConnectTimeout(), ddo.getReadTimeout()).thenApplyAsync(response -> {
+                ddo.getConnectTimeout(), ddo.getReadTimeout(), ddo.getReturnClass()).thenApplyAsync(response -> {
             apiResponseResolver.setStatusCode(response.getHttpStatusCode());
             if(SUCCESS.equalsIgnoreCase(response.getStatus())){
                 log.info("{} OTP generated for email: {}", apiRequestResolver.getLoggerString(), email);
@@ -225,7 +225,7 @@ public class ProfileService extends Constants {
         uriBuilder.queryParam(OTP, otp);
         HttpMethod method = Utils.getHttpMethod(ddo.getMethod());
         return wsUtils.makeWSCall(uriBuilder.toUriString(), null, new HashMap<>(), method,
-                ddo.getConnectTimeout(), ddo.getReadTimeout()).thenApplyAsync(response -> {
+                ddo.getConnectTimeout(), ddo.getReadTimeout(), ddo.getReturnClass()).thenApplyAsync(response -> {
             apiResponseResolver.setStatusCode(response.getHttpStatusCode());
             if(SUCCESS.equalsIgnoreCase(response.getStatus())){
                 log.info("{} OTP validated for email: {}", apiRequestResolver.getLoggerString(), email);
@@ -248,7 +248,8 @@ public class ProfileService extends Constants {
         String serviceUrl = redisManager.getServiceEndpoint(ddo.getService());
         String apiEndpoint = serviceUrl.concat(ddo.getApi());
         HttpMethod method = Utils.getHttpMethod(ddo.getMethod());
-        return wsUtils.makeWSCall(apiEndpoint, apiRequestResolver.getRequestBody(), new HashMap<>(), method, ddo.getConnectTimeout(), ddo.getReadTimeout()).thenApplyAsync(createResp -> {
+        return wsUtils.makeWSCall(apiEndpoint, apiRequestResolver.getRequestBody(), new HashMap<>(), method,
+                ddo.getConnectTimeout(), ddo.getReadTimeout(), ddo.getReturnClass()).thenApplyAsync(createResp -> {
             log.debug("{} profile create call completed with response {}", apiRequestResolver.getLoggerString(), createResp);
             if(createResp == null || FAILURE.equalsIgnoreCase(createResp.getStatus())){
                 log.error("{} Error creating profile for request {}", apiRequestResolver.getLoggerString(), apiRequestResolver.getRequestBody());
@@ -319,7 +320,7 @@ public class ProfileService extends Constants {
         apiEndpoint = apiEndpoint.concat(SLASH).concat(email);
         HttpMethod method = Utils.getHttpMethod(ddo.getMethod());
         return wsUtils.makeWSCall(apiEndpoint, null, new HashMap<>(), method, ddo.getConnectTimeout(),
-                ddo.getReadTimeout()).thenApplyAsync(response -> {
+                ddo.getReadTimeout(), ddo.getReturnClass()).thenApplyAsync(response -> {
             log.debug("{} profile fetchId call completed with response {}", apiRequestResolver.getLoggerString(), response);
             if(response==null || FAILURE.equalsIgnoreCase(response.getStatus())){
                 log.info("{} No user found for email: {}", apiRequestResolver.getLoggerString(), email);

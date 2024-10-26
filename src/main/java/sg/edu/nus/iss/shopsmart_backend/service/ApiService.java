@@ -70,7 +70,7 @@ public class ApiService extends Constants {
         //then if needed reconstruct the request object
         JsonNode requestBody = addCommonFieldsToRequest(apiRequestResolver);
         return wsUtils.makeWSCall(uriBuilder.toUriString(), requestBody,
-                apiRequestResolver.getHeaders(), method, ddo.getConnectTimeout(), ddo.getReadTimeout()).thenApplyAsync(response -> {
+                apiRequestResolver.getHeaders(), method, ddo.getConnectTimeout(), ddo.getReadTimeout(), ddo.getReturnClass()).thenApplyAsync(response -> {
             log.debug("{} Received response for API key: {}", apiRequestResolver.getLoggerString(), apiRequestResolver.getApiKey());
             apiResponseResolver.setStatusCode(response.getHttpStatusCode());
             if(SUCCESS.equalsIgnoreCase(response.getStatus())){
