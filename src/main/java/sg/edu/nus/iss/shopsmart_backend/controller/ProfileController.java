@@ -41,7 +41,7 @@ public class ProfileController extends Constants {
         log.info("Starting flow for generate OTP for registration for profileType: {}", profileType);
         ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, GENERATE_OTP, null);
         long startTime = System.currentTimeMillis();
-        return profileService.validateOtpAndRegister(apiRequestResolver, profileType).thenApplyAsync(resp ->{
+        return profileService.generateOtpForRegister(apiRequestResolver, profileType).thenApplyAsync(resp ->{
             log.info("{} Time taken to complete otp generation for registration is {} ms", apiRequestResolver.getLoggerString(),
                     (System.currentTimeMillis() - startTime));
             setRequiredCookies(apiRequestResolver, request, response);
@@ -80,7 +80,7 @@ public class ProfileController extends Constants {
         log.info("Starting flow for generate OTP for login for profileType: {}", profileType);
         ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, GENERATE_OTP, null);
         long startTime = System.currentTimeMillis();
-        return profileService.validateOtpAndRegister(apiRequestResolver, profileType).thenApplyAsync(resp ->{
+        return profileService.generateOtpForLogin(apiRequestResolver, profileType).thenApplyAsync(resp ->{
             log.info("{} Time taken to complete otp generation for login is {} ms", apiRequestResolver.getLoggerString(),
                     (System.currentTimeMillis() - startTime));
             setRequiredCookies(apiRequestResolver, request, response);
@@ -96,7 +96,7 @@ public class ProfileController extends Constants {
         log.info("Starting flow for validate OTP and createProfile for login for profileType: {}", profileType);
         ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, VALIDATE_OTP, requestBody);
         long startTime = System.currentTimeMillis();
-        return profileService.validateOtpAndRegister(apiRequestResolver, profileType).thenApplyAsync(resp ->{
+        return profileService.validateOtpAndLogin(apiRequestResolver, profileType).thenApplyAsync(resp ->{
             log.info("{} Time taken to complete validate otp and fetch userId is {} ms", apiRequestResolver.getLoggerString(),
                     (System.currentTimeMillis() - startTime));
             String userId = JsonUtils.getText(resp.getRespData(), USER_ID);

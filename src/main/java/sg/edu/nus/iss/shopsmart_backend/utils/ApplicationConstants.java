@@ -21,7 +21,7 @@ public interface ApplicationConstants {
     String OTP = "otp";
     String CREATED_AT = "createdAt";
     String VALID_TILL = "validTill";
-    String SESSION_ID = "JSESSIONID";
+    String SESSION_ID = "sessionId";
     String CORRELATION_ID = "correlationId";
     String IS_LOGGED_IN = "isLoggedIn";
     String TRUE = "true";
@@ -29,5 +29,6 @@ public interface ApplicationConstants {
     String CUSTOMER = "customer";
     String MERCHANT = "merchant";
     String ADMIN = "admin";
-    String ADMIN_USER_ID = "admin123456789";
+    String ADMIN_USER_ID = "adminUserId";
+    String ADMIN_EMAIL_ID = "adminEmailId";
 }

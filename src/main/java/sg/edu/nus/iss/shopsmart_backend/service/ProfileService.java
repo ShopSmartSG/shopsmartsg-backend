@@ -15,10 +15,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import sg.edu.nus.iss.shopsmart_backend.model.ApiRequestResolver;
 import sg.edu.nus.iss.shopsmart_backend.model.ApiResponseResolver;
 import sg.edu.nus.iss.shopsmart_backend.model.DataDynamicObject;
-import sg.edu.nus.iss.shopsmart_backend.utils.Constants;
-import sg.edu.nus.iss.shopsmart_backend.utils.RedisManager;
-import sg.edu.nus.iss.shopsmart_backend.utils.Utils;
-import sg.edu.nus.iss.shopsmart_backend.utils.WSUtils;
+import sg.edu.nus.iss.shopsmart_backend.utils.*;
 
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
@@ -37,7 +34,7 @@ public class ProfileService extends Constants {
         this.wsUtils = wsUtils;
     }
 
-    public CompletableFuture<ApiResponseResolver> registerViaOtp(ApiRequestResolver apiRequestResolver, String profileType){
+    public CompletableFuture<ApiResponseResolver> generateOtpForRegister(ApiRequestResolver apiRequestResolver, String profileType){
         log.info("{} Generating OTP for profile registration with requestObt : {}", apiRequestResolver.getLoggerString(), apiRequestResolver.getRequestBody());
         ApiResponseResolver apiResponseResolver = new ApiResponseResolver();
         ObjectNode data = mapper.createObjectNode();
@@ -57,6 +54,13 @@ public class ProfileService extends Constants {
             return CompletableFuture.completedFuture(apiResponseResolver);
         }
         String email = payload.get(EMAIL).asText();
+        if(ADMIN.equalsIgnoreCase(profileType) && !checkIfValidAdminEmailId(email)){
+            log.info("{} Email {} is not valid for admin, not authorized", apiRequestResolver.getLoggerString(), email);
+            apiResponseResolver.setStatusCode(HttpStatus.UNAUTHORIZED); // 401 unauthorized
+            data.put(MESSAGE, "Email is not authorized for admin OTP generation");
+            apiResponseResolver.setRespData(data);
+            return CompletableFuture.completedFuture(apiResponseResolver);
+        }
         return fetchUserIdForEmail(apiRequestResolver, email, profileType).thenComposeAsync(userId -> {
             if(StringUtils.isNotEmpty(userId)){
                 log.info("{} User id {} found for email, so not generating OTP for registration, user needs to login",
@@ -69,7 +73,7 @@ public class ProfileService extends Constants {
             return generateOtp(apiRequestResolver, email);
         });
     }
-    public CompletableFuture<ApiResponseResolver> loginViaOtp(ApiRequestResolver apiRequestResolver, String profileType){
+    public CompletableFuture<ApiResponseResolver> generateOtpForLogin(ApiRequestResolver apiRequestResolver, String profileType){
         log.info("{} Generating OTP for profile login with requestObt : {}", apiRequestResolver.getLoggerString(), apiRequestResolver.getRequestBody());
         ApiResponseResolver apiResponseResolver = new ApiResponseResolver();
         ObjectNode data = mapper.createObjectNode();
@@ -258,12 +262,13 @@ public class ProfileService extends Constants {
     private CompletableFuture<ApiResponseResolver> createProfileAndRetrieveId(ApiRequestResolver apiRequestResolver, String email, String profileType){
         log.info("Starting profile create flow for email: {} and profileType: {}", email, profileType);
         if(ADMIN.equalsIgnoreCase(profileType)){
+            String adminUserId = redisManager.getHashValue(REDIS_FEATURE_FLAGS, ADMIN_USER_ID);
             log.info("{} Admin profile type has a hard coded userId : {}, hence no need to create profile",
-                    apiRequestResolver.getLoggerString(), ADMIN_USER_ID);
+                    apiRequestResolver.getLoggerString(), adminUserId);
             ApiResponseResolver apiResponseResolver = new ApiResponseResolver();
             ObjectNode data = mapper.createObjectNode();
             apiResponseResolver.setStatusCode(HttpStatus.OK); // 200 ok
-            data.put(USER_ID, ADMIN_USER_ID);
+            data.put(USER_ID, adminUserId);
             apiResponseResolver.setRespData(data);
             return CompletableFuture.completedFuture(apiResponseResolver);
         }
@@ -298,8 +303,9 @@ public class ProfileService extends Constants {
     private CompletableFuture<String> fetchUserIdForEmail(ApiRequestResolver apiRequestResolver, String email, String profileType){
         log.info("{} fetching user id for email {} for profileType {}", apiRequestResolver.getLoggerString(), email, profileType);
         if(ADMIN.equalsIgnoreCase(profileType)){
-            log.info("{} Admin profile type has a hard coded userId : {}", apiRequestResolver.getLoggerString(), ADMIN_USER_ID);
-            return CompletableFuture.completedFuture(ADMIN_USER_ID);
+            String adminUserId = redisManager.getHashValue(REDIS_FEATURE_FLAGS, ADMIN_USER_ID);
+            log.info("{} Admin profile type has a hard coded userId : {}", apiRequestResolver.getLoggerString(), adminUserId);
+            return CompletableFuture.completedFuture(adminUserId);
         }
         String ddoToGetProfileId = Utils.ddoCreateProfileByType(profileType);
         if(ddoToGetProfileId == null){
@@ -323,5 +329,13 @@ public class ProfileService extends Constants {
                 return response.getData().get(USER_ID).asText();
             }
         });
+    }
+
+    private boolean checkIfValidAdminEmailId(String emailId){
+        String adminEmailId = redisManager.getHashValue(REDIS_FEATURE_FLAGS, ADMIN_EMAIL_ID);
+        if(adminEmailId==null || StringUtils.isEmpty(adminEmailId)){
+            return false;
+        }
+        return adminEmailId.equalsIgnoreCase(emailId);
     }
 }

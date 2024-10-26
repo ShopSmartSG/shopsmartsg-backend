@@ -8,4 +8,5 @@ public interface RedisKeys {
     String REDIS_DDO_PREFIX = "ss:ddo:";
     String REDIS_ENVIRONMENT_DEVELOPMENT = "ss:environment:development";
     String REDIS_SESSION_PREFIX = "ss:session:";
+    String REDIS_FEATURE_FLAGS = "ss:feature:flags";
 }
