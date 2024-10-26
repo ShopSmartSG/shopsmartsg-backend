@@ -11,7 +11,7 @@ public class DataDynamicObject {
     private String method;
     private Map<String, String> params;
     private Map<String, String> headers;
-    private String returnClass;
+    private String returnClass = "object";
     private long connectTimeout = 1000;
     private long readTimeout = 30000;
 }
