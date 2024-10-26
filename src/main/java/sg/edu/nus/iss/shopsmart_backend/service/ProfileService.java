@@ -328,7 +328,10 @@ public class ProfileService extends Constants {
             }else{
                 log.info("{} User found for email: {} and it is : {}", apiRequestResolver.getLoggerString(), email, response.getData().get(MESSAGE).textValue());
                 //in ws call we are returning against message.
-                return response.getData().get(MESSAGE).textValue();
+                String userId = response.getData().get(MESSAGE).textValue();
+                userId = userId.trim().replace("\"", "");
+                log.debug("{} User after trim and replace is : {}", apiRequestResolver.getLoggerString(), userId);
+                return userId;
             }
         });
     }
