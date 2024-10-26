@@ -16,6 +16,7 @@ import sg.edu.nus.iss.shopsmart_backend.model.Response;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -50,6 +51,7 @@ public class WSUtils extends Constants {
         HttpHeaders httpHeaders = new HttpHeaders();
         headers.forEach(httpHeaders::set);
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+        httpHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN));
 
         HttpEntity<JsonNode> request;
         if (data != null && !data.isNull() && !data.isEmpty()) {
