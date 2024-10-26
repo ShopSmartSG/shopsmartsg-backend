@@ -35,11 +35,11 @@ public class ProfileController extends Constants {
         this.utils = utils;
     }
 
-    @GetMapping("/register/generateOtp/{profileType}")
-    public CompletableFuture<ResponseEntity<JsonNode>> generateOtpForRegister(@PathVariable String profileType,
+    @PostMapping("/register/generateOtp/{profileType}")
+    public CompletableFuture<ResponseEntity<JsonNode>> generateOtpForRegister(@PathVariable String profileType, @RequestBody JsonNode requestBody,
                                        HttpServletRequest request, HttpServletResponse response){
         log.info("Starting flow for generate OTP for registration for profileType: {}", profileType);
-        ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, GENERATE_OTP, null);
+        ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, GENERATE_OTP, requestBody);
         long startTime = System.currentTimeMillis();
         return profileService.generateOtpForRegister(apiRequestResolver, profileType).thenApplyAsync(resp ->{
             log.info("{} Time taken to complete otp generation for registration is {} ms", apiRequestResolver.getLoggerString(),
@@ -74,11 +74,11 @@ public class ProfileController extends Constants {
         });
     }
 
-    @GetMapping("/login/generateOtp/{profileType}")
-    public CompletableFuture<ResponseEntity<JsonNode>> generateOtpForLogin(@PathVariable String profileType,
+    @PostMapping("/login/generateOtp/{profileType}")
+    public CompletableFuture<ResponseEntity<JsonNode>> generateOtpForLogin(@PathVariable String profileType, @RequestBody JsonNode requestBody,
                                     HttpServletRequest request, HttpServletResponse response){
         log.info("Starting flow for generate OTP for login for profileType: {}", profileType);
-        ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, GENERATE_OTP, null);
+        ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, GENERATE_OTP, requestBody);
         long startTime = System.currentTimeMillis();
         return profileService.generateOtpForLogin(apiRequestResolver, profileType).thenApplyAsync(resp ->{
             log.info("{} Time taken to complete otp generation for login is {} ms", apiRequestResolver.getLoggerString(),
