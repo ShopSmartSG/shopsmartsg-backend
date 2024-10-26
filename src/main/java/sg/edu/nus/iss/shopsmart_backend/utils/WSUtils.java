@@ -72,7 +72,18 @@ public class WSUtils extends Constants {
                     resp.setStatus(FAILURE);
                     resp.setErrorCode(response.getStatusCode().toString());
                 }
-                if (response.getBody() instanceof JsonNode || response.getBody() instanceof ArrayNode
+                if (response.getHeaders().getContentType() != null &&
+                        response.getHeaders().getContentType().includes(MediaType.TEXT_PLAIN)) {
+                    try {
+                        responseData.put(MESSAGE, response.getBody().toString());
+                        resp.setData(responseData);
+                    } catch (Exception e) {
+                        log.error("Failed:: to parse text/plain response body for the url {} with error: ", url, e);
+                        responseData.put(MESSAGE, "Failed to resolve url ".concat(url).concat(" with response: ").concat(RESPONSE));
+                        resp.setData(responseData);
+                    }
+                    return resp;
+                } else if (response.getBody() instanceof JsonNode || response.getBody() instanceof ArrayNode
                         || response.getBody() instanceof ObjectNode) {
                     resp.setData((JsonNode) response.getBody());
                     return resp;
