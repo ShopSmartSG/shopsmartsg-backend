@@ -68,8 +68,8 @@ public class ApiService extends Constants {
 
         //first perform JWT validation or have validated data passed in apiRequestResolver.
         //then if needed reconstruct the request object
-        JsonNode requestBody = addCommonFieldsToRequest(apiRequestResolver);
-        return wsUtils.makeWSCall(uriBuilder.toUriString(), requestBody,
+//        JsonNode requestBody = addCommonFieldsToRequest(apiRequestResolver);
+        return wsUtils.makeWSCall(uriBuilder.toUriString(), apiRequestResolver.getRequestBody(),
                 apiRequestResolver.getHeaders(), method, ddo.getConnectTimeout(), ddo.getReadTimeout(), ddo.getReturnClass()).thenApplyAsync(response -> {
             log.debug("{} Received response for API key: {}", apiRequestResolver.getLoggerString(), apiRequestResolver.getApiKey());
             apiResponseResolver.setStatusCode(response.getHttpStatusCode());
