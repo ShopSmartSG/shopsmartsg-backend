@@ -108,7 +108,7 @@ public class WSUtils extends Constants {
                         || response.getBody() instanceof ObjectNode) {
                     resp.setData((JsonNode) response.getBody());
                     return resp;
-                } else if (response.getBody() instanceof ArrayList) {
+                } else if (response.getBody() instanceof ArrayList || response.getBody() instanceof Map) {
                     resp.setData(mapper.convertValue(response.getBody(), JsonNode.class));
                     return resp;
                 } else if (response.getBody() instanceof String) {
@@ -118,19 +118,21 @@ public class WSUtils extends Constants {
                         return resp;
                     } catch (Exception e) {
                         log.error("ObjectWS :: Failed:: to parse response body for the url {} with error: ", url, e);
-                        responseData.put(MESSAGE, "Failed to resolve url ".concat(url).concat(EMPTY_SPACE).concat("with response: ").concat(RESPONSE));
+                        responseData.put(MESSAGE, "Failed to resolve url ".concat(url));
+                        responseData.set(DATA, mapper.convertValue(response, JsonNode.class));
                         resp.setData(responseData);
                         return resp;
                     }
                 } else {
                     log.error("ObjectWS :: Exception:: Unexpected response body type: {} for url {}", response.getBody().getClass(), url);
-                    responseData.put(MESSAGE, "Exception occurred due to unidentified body type for url ".concat(url)
-                            .concat(EMPTY_SPACE).concat("with response: ").concat(RESPONSE));
+                    responseData.put(MESSAGE, "Exception occurred due to unidentified body type for url ".concat(url));
+                    responseData.set(DATA, mapper.convertValue(response, JsonNode.class));
                     resp.setData(responseData);
                     return resp;
                 }
             } else {
-                responseData.put(MESSAGE, "No response body found for url ".concat(url).concat(EMPTY_SPACE).concat(RESPONSE));
+                responseData.put(MESSAGE, "No response body found for url ".concat(url));
+                responseData.set(DATA, mapper.convertValue(response, JsonNode.class));
                 resp.setData(responseData);
                 return resp;
             }
