@@ -3,7 +3,6 @@ package sg.edu.nus.iss.shopsmart_backend.utils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +28,7 @@ public class Utils extends Constants{
         return switch (profileType) {
             case CUSTOMER -> FETCH_CUSTOMER_ID_BY_EMAIL;
             case MERCHANT -> FETCH_MERCHANT_ID_BY_EMAIL;
-            case DELIVERY -> FETCH_DELIVERY_ID_BY_EMAIL;
+            case DELIVERY -> FETCH_DELIVERY_PARTNER_ID_BY_EMAIL;
             default -> null;
         };
     }
@@ -38,7 +37,7 @@ public class Utils extends Constants{
         return switch (profileType) {
             case CUSTOMER -> CREATE_CUSTOMER_PROFILE;
             case MERCHANT -> CREATE_MERCHANT_PROFILE;
-            case DELIVERY -> CREATE_DELIVERY_PROFILE;
+            case DELIVERY -> CREATE_DELIVERY_PARTNER_PROFILE;
             default -> null;
         };
     }
