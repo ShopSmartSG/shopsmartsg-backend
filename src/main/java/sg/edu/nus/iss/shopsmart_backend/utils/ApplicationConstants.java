@@ -29,6 +29,7 @@ public interface ApplicationConstants {
     String FALSE = "false";
     String CUSTOMER = "customer";
     String MERCHANT = "merchant";
+    String DELIVERY = "delivery";
     String ADMIN = "admin";
     String ADMIN_USER_ID = "adminUserId";
     String ADMIN_EMAIL_ID = "adminEmailId";
