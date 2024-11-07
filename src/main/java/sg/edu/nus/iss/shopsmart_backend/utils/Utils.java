@@ -92,7 +92,7 @@ public class Utils extends Constants{
 
             response.addHeader("Set-Cookie", USER_ID.concat(EQUALS)
                     .concat("; Path=/; HttpOnly; Max-Age=0; Domain=").concat(domain)
-                    .concat("; SameSite=Lax"));
+                    .concat("; SameSite=None"));
             return;
         }
         if(apiRequestResolver.getUserId() != null && StringUtils.isNotEmpty(apiRequestResolver.getUserId()) && apiRequestResolver.isLoggedIn()){
@@ -107,7 +107,7 @@ public class Utils extends Constants{
             response.addHeader("Set-Cookie", USER_ID.concat(EQUALS).concat(apiRequestResolver.getUserId())
                     .concat("; Path=/; HttpOnly; Max-Age=").concat(String.valueOf(60 * 60 * 24 * 30))
                     .concat("; Domain=").concat(domain)
-                    .concat("; SameSite=Lax"));
+                    .concat("; SameSite=None"));
             return;
         }
     }
