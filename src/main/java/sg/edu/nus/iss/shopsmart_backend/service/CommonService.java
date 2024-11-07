@@ -117,7 +117,7 @@ public class CommonService extends Constants {
                 redisManager.setHashMap(REDIS_SESSION_PREFIX.concat(sessionId), sessionData);
                 apiRequestResolver.setSessionAttributes(sessionData);
                 apiRequestResolver.setUserId(sessionData.get(USER_ID));
-                apiRequestResolver.setLoggedIn(false);
+                apiRequestResolver.setLoggedIn(true);
             } else {
                 log.info("Session {} is not logged in, will check if session change is needed or not", sessionId);
                 if(System.currentTimeMillis() > Long.parseLong(sessionData.get(VALID_TILL))){

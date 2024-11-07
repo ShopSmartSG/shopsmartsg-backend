@@ -52,13 +52,14 @@ public class Utils extends Constants{
         sessionCookie.setPath("/");
         sessionCookie.setHttpOnly(true);
         sessionCookie.setDomain(domain);
+        sessionCookie.setAttribute("SameSite", "Lax");
         sessionCookie.setMaxAge(60 * 30); // 30 minutes
         response.addCookie(sessionCookie);
 
-        response.addHeader("Set-Cookie", SESSION_ID.concat(EQUALS).concat(sessionId)
-                .concat("; Path=/; HttpOnly; Max-Age=").concat(String.valueOf(60 * 30))
-                .concat("; Domain=").concat(domain)
-                .concat("; SameSite=Lax"));
+//        response.addHeader("Set-Cookie", SESSION_ID.concat(EQUALS).concat(sessionId)
+//                .concat("; Path=/; HttpOnly; Max-Age=").concat(String.valueOf(60 * 30))
+//                .concat("; Domain=").concat(domain)
+//                .concat("; SameSite=Lax"));
         log.debug("printing cookies for response for sessionId : {}", response.getHeaders("Set-Cookie"));
 //        response.setHeader("Set-Cookie", SESSION_ID.concat(EQUALS) + sessionId + "; Path=/; HttpOnly");
         //handle session here.
@@ -74,6 +75,7 @@ public class Utils extends Constants{
 
     public void setUserIdCookieNeededOrRemove(ApiRequestResolver apiRequestResolver, HttpServletRequest request,
                                               HttpServletResponse response){
+        log.debug("starting setting of userid in cookies for {}", apiRequestResolver);
         String domain = request.getServerName();
         Cookie userIdCookie;
         String existingUserId = "";
