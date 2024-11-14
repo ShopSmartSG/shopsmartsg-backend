@@ -27,20 +27,20 @@ public class RedisController {
         this.redisService = redisService;
     }
 
-    @PostMapping("/ddo/{apiKey}")
-    public ResponseEntity<String> insertDdoDataInRedis(@PathVariable String apiKey, @RequestBody DataDynamicObject requestBody) {
+    @PostMapping("/ddo/{api-key}")
+    public ResponseEntity<String> insertDdoDataInRedis(@PathVariable(name = "api-key") String apiKey, @RequestBody DataDynamicObject requestBody) {
         log.info("Inserting DDO data in Redis for API key: {}", apiKey);
         return ok(redisService.insertDdoDataInRedis(apiKey, requestBody));
     }
 
-    @GetMapping("/ddo/{apiKey}")
-    public ResponseEntity<JsonNode> getDdoDataFromRedis(@PathVariable String apiKey) {
+    @GetMapping("/ddo/{api-key}")
+    public ResponseEntity<JsonNode> getDdoDataFromRedis(@PathVariable(name = "api-key") String apiKey) {
         log.info("Fetching DDO data from Redis for API key: {}", apiKey);
         return ok(redisService.getDdoDataFromRedis(apiKey));
     }
 
-    @PostMapping("/hash/{redisKey}")
-    public ResponseEntity<String> insertHashEntry(@PathVariable String redisKey, @RequestBody Map<String, String> requestBody) {
+    @PostMapping("/hash/{redis-key}")
+    public ResponseEntity<String> insertHashEntry(@PathVariable(name = "redis-key") String redisKey, @RequestBody Map<String, String> requestBody) {
         log.info("Inserting hash entry in Redis for key: {}", redisKey);
         String hashKey = requestBody.get("hashKey");
         String value = requestBody.get("value");
@@ -48,14 +48,14 @@ public class RedisController {
         return ok("Success");
     }
 
-    @GetMapping("/hash/{redisKey}/{hashKey}")
-    public ResponseEntity<String> getHashEntry(@PathVariable String redisKey, @PathVariable String hashKey) {
+    @GetMapping("/hash/{redis-key}/{hash-key}")
+    public ResponseEntity<String> getHashEntry(@PathVariable(name = "redis-key") String redisKey, @PathVariable(name = "hash-key") String hashKey) {
         log.info("Fetching hash entry from Redis for key: {} and hash key: {}", redisKey, hashKey);
         return ok(redisService.getHashValue(redisKey, hashKey));
     }
 
-    @GetMapping("/hash/{redisKey}")
-    public ResponseEntity<JsonNode> getHashEntries(@PathVariable String redisKey) {
+    @GetMapping("/hash/{redis-key}")
+    public ResponseEntity<JsonNode> getHashEntries(@PathVariable(name = "redis-key") String redisKey) {
         log.info("Fetching all hash entries from Redis for key: {}", redisKey);
         return ok(redisService.getHashMap(redisKey));
     }
