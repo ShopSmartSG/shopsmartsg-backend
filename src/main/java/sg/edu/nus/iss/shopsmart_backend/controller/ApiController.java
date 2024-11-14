@@ -45,9 +45,9 @@ public class ApiController {
         return headers;
     }
 
-    @GetMapping("/{apiKey}/**")
+    @GetMapping("/{api-key}/**")
     public CompletableFuture<ResponseEntity<JsonNode>> handleGetRequest(
-            @PathVariable String apiKey,
+            @PathVariable(name = "api-key") String apiKey,
             HttpServletRequest request,
             HttpServletResponse response) {
         HttpHeaders headers = createHeaders();
@@ -64,9 +64,9 @@ public class ApiController {
                 });
     }
 
-    @PostMapping("/{apiKey}/**")
+    @PostMapping("/{api-key}/**")
     public CompletableFuture<ResponseEntity<JsonNode>> handlePostRequest(
-            @PathVariable String apiKey,
+            @PathVariable(name = "api-key") String apiKey,
             @RequestBody JsonNode requestBody,
             HttpServletRequest request,
             HttpServletResponse response) {
@@ -84,9 +84,9 @@ public class ApiController {
                 });
     }
 
-    @PutMapping("/{apiKey}/**")
+    @PutMapping("/{api-key}/**")
     public CompletableFuture<ResponseEntity<JsonNode>> handlePutRequest(
-            @PathVariable String apiKey,
+            @PathVariable(name = "api-key") String apiKey,
             @RequestBody JsonNode requestBody,
             HttpServletRequest request,
             HttpServletResponse response) {
@@ -104,9 +104,9 @@ public class ApiController {
                 });
     }
 
-    @PatchMapping("/{apiKey}/**")
+    @PatchMapping("/{api-key}/**")
     public CompletableFuture<ResponseEntity<JsonNode>> handlePatchRequest(
-            @PathVariable String apiKey,
+            @PathVariable(name = "api-key") String apiKey,
             @RequestBody JsonNode requestBody,
             HttpServletRequest request,
             HttpServletResponse response) {
@@ -124,9 +124,9 @@ public class ApiController {
                 });
     }
 
-    @DeleteMapping("/{apiKey}/**")
+    @DeleteMapping("/{api-key}/**")
     public CompletableFuture<ResponseEntity<JsonNode>> handleDeleteRequest(
-            @PathVariable String apiKey,
+            @PathVariable(name = "api-key") String apiKey,
             HttpServletRequest request,
             HttpServletResponse response) {
         log.info("Handling DELETE request for API: {}", apiKey);
