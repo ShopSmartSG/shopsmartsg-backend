@@ -128,12 +128,17 @@ public class WSUtils extends ApplicationConstants {
     }
 
     private HttpMethod getHttpMethod(String method){
-        return switch (method) {
-            case "POST" -> HttpMethod.POST;
-            case "PUT" -> HttpMethod.PUT;
-            case "DELETE" -> HttpMethod.DELETE;
-            case "PATCH" -> HttpMethod.PATCH;
-            default -> HttpMethod.GET;
-        };
+        switch (method) {
+            case "POST":
+                return HttpMethod.POST;
+            case "PUT":
+                return HttpMethod.PUT;
+            case "DELETE":
+                return HttpMethod.DELETE;
+            case "PATCH":
+                return HttpMethod.PATCH;
+            default:
+                return HttpMethod.GET;
+        }
     }
 }
