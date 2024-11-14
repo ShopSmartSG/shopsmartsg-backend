@@ -40,8 +40,8 @@ public class ApiController extends Constants {
         this.utils = utils;
     }
 
-    @GetMapping("/{apiKey}/**")
-    public CompletableFuture<ResponseEntity<JsonNode>> handleGetRequest(@PathVariable String apiKey,
+    @GetMapping("/{api-key}/**")
+    public CompletableFuture<ResponseEntity<JsonNode>> handleGetRequest(@PathVariable(name = "api-key") String apiKey,
             HttpServletRequest request, HttpServletResponse response) {
         HttpHeaders headers = Utils.createHeaders();
         log.info("Handling GET request for API: {}", apiKey);
@@ -59,8 +59,8 @@ public class ApiController extends Constants {
                 });
     }
 
-    @PostMapping("/{apiKey}/**")
-    public CompletableFuture<ResponseEntity<JsonNode>> handlePostRequest(@PathVariable String apiKey,
+    @PostMapping("/{api-key}/**")
+    public CompletableFuture<ResponseEntity<JsonNode>> handlePostRequest(@PathVariable(name = "api-key") String apiKey,
             @RequestBody JsonNode requestBody, HttpServletRequest request, HttpServletResponse response) {
         log.info("Handling POST request for API: {}", apiKey);
         HttpHeaders headers = Utils.createHeaders();
@@ -78,8 +78,8 @@ public class ApiController extends Constants {
                 });
     }
 
-    @PutMapping("/{apiKey}/**")
-    public CompletableFuture<ResponseEntity<JsonNode>> handlePutRequest(@PathVariable String apiKey,
+    @PutMapping("/{api-key}/**")
+    public CompletableFuture<ResponseEntity<JsonNode>> handlePutRequest(@PathVariable(name = "api-key") String apiKey,
             @RequestBody JsonNode requestBody, HttpServletRequest request, HttpServletResponse response) {
         log.info("Handling PUT request for API: {}", apiKey);
         HttpHeaders headers = Utils.createHeaders();
@@ -97,8 +97,8 @@ public class ApiController extends Constants {
                 });
     }
 
-    @PatchMapping("/{apiKey}/**")
-    public CompletableFuture<ResponseEntity<JsonNode>> handlePatchRequest(@PathVariable String apiKey,
+    @PatchMapping("/{api-key}/**")
+    public CompletableFuture<ResponseEntity<JsonNode>> handlePatchRequest(@PathVariable(name = "api-key") String apiKey,
             @RequestBody JsonNode requestBody, HttpServletRequest request, HttpServletResponse response) {
         log.info("Handling PATCH request for API: {}", apiKey);
         HttpHeaders headers = Utils.createHeaders();
@@ -116,8 +116,8 @@ public class ApiController extends Constants {
                 });
     }
 
-    @DeleteMapping("/{apiKey}/**")
-    public CompletableFuture<ResponseEntity<JsonNode>> handleDeleteRequest(@PathVariable String apiKey,
+    @DeleteMapping("/{api-key}/**")
+    public CompletableFuture<ResponseEntity<JsonNode>> handleDeleteRequest(@PathVariable(name = "api-key") String apiKey,
             HttpServletRequest request, HttpServletResponse response) {
         log.info("Handling DELETE request for API: {}", apiKey);
         HttpHeaders headers = Utils.createHeaders();
