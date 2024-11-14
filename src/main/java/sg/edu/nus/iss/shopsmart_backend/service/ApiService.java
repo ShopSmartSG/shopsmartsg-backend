@@ -65,10 +65,6 @@ public class ApiService extends Constants {
             queryParams.forEach(uriBuilder::queryParam);
         }
         HttpMethod method = Utils.getHttpMethod(ddo.getMethod());
-
-        //first perform JWT validation or have validated data passed in apiRequestResolver.
-        //then if needed reconstruct the request object
-//        JsonNode requestBody = addCommonFieldsToRequest(apiRequestResolver);
         return wsUtils.makeWSCall(uriBuilder.toUriString(), apiRequestResolver.getRequestBody(),
                 apiRequestResolver.getHeaders(), method, ddo.getConnectTimeout(), ddo.getReadTimeout(), ddo.getReturnClass()).thenApplyAsync(response -> {
             log.debug("{} Received response for API key: {}", apiRequestResolver.getLoggerString(), apiRequestResolver.getApiKey());
@@ -77,7 +73,6 @@ public class ApiService extends Constants {
                 log.info("{} Success :: For the API key: {} received response {}", apiRequestResolver.getLoggerString(),
                         apiRequestResolver.getApiKey(), response);
                 JsonNode respData = response.getData();
-                //add required userId and jwtToken to response.
                 apiResponseResolver.setRespData(respData);
             } else {
                 log.info("{} Failure :: For the API key: {} received response {}", apiRequestResolver.getLoggerString(),

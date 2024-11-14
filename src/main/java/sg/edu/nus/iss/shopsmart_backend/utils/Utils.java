@@ -15,31 +15,44 @@ import sg.edu.nus.iss.shopsmart_backend.model.ApiRequestResolver;
 public class Utils extends Constants{
     private static final Logger log = LoggerFactory.getLogger(Utils.class);
     public static HttpMethod getHttpMethod(String method){
-        return switch (method) {
-            case "POST" -> HttpMethod.POST;
-            case "PUT" -> HttpMethod.PUT;
-            case "DELETE" -> HttpMethod.DELETE;
-            case "PATCH" -> HttpMethod.PATCH;
-            default -> HttpMethod.GET;
-        };
+        switch (method) {
+            case "POST":
+                return HttpMethod.POST;
+            case "PUT":
+                return HttpMethod.PUT;
+            case "DELETE":
+                return HttpMethod.DELETE;
+            case "PATCH":
+                return HttpMethod.PATCH;
+            default:
+                return HttpMethod.GET;
+        }
     }
 
     public static String getDdoForFetchProfileIdByType(String profileType){
-        return switch (profileType) {
-            case CUSTOMER -> FETCH_CUSTOMER_ID_BY_EMAIL;
-            case MERCHANT -> FETCH_MERCHANT_ID_BY_EMAIL;
-            case DELIVERY -> FETCH_DELIVERY_PARTNER_ID_BY_EMAIL;
-            default -> null;
-        };
+        switch (profileType) {
+            case CUSTOMER:
+                return FETCH_CUSTOMER_ID_BY_EMAIL;
+            case MERCHANT:
+                return FETCH_MERCHANT_ID_BY_EMAIL;
+            case DELIVERY:
+                return FETCH_DELIVERY_PARTNER_ID_BY_EMAIL;
+            default:
+                return null;
+        }
     }
 
     public static String ddoCreateProfileByType(String profileType){
-        return switch (profileType) {
-            case CUSTOMER -> CREATE_CUSTOMER_PROFILE;
-            case MERCHANT -> CREATE_MERCHANT_PROFILE;
-            case DELIVERY -> CREATE_DELIVERY_PARTNER_PROFILE;
-            default -> null;
-        };
+        switch (profileType) {
+            case CUSTOMER:
+                return CREATE_CUSTOMER_PROFILE;
+            case MERCHANT:
+                return CREATE_MERCHANT_PROFILE;
+            case DELIVERY:
+                return CREATE_DELIVERY_PARTNER_PROFILE;
+            default:
+                return null;
+        }
     }
 
     public void setSessionAndCookieDataForSession(ApiRequestResolver apiRequestResolver, HttpServletRequest request,
@@ -56,21 +69,7 @@ public class Utils extends Constants{
         sessionCookie.setMaxAge(60 * 30); // 30 minutes
         response.addCookie(sessionCookie);
 
-//        response.addHeader("Set-Cookie", SESSION_ID.concat(EQUALS).concat(sessionId)
-//                .concat("; Path=/; HttpOnly; Max-Age=").concat(String.valueOf(60 * 30))
-//                .concat("; Domain=").concat(domain)
-//                .concat("; SameSite=Lax"));
         log.debug("printing cookies for response for sessionId : {}", response.getHeaders("Set-Cookie"));
-//        response.setHeader("Set-Cookie", SESSION_ID.concat(EQUALS) + sessionId + "; Path=/; HttpOnly");
-        //handle session here.
-//        HttpSession session = request.getSession(false);
-//
-//        if (session == null || !sessionId.equals(session.getId())) {
-//            session = request.getSession(true);
-//            session.setAttribute(SESSION_ID, sessionId);
-//        }
-        // Set additional session attributes
-//        apiRequestResolver.getSessionAttributes().forEach(session::setAttribute);
     }
 
     public void setUserIdCookieNeededOrRemove(ApiRequestResolver apiRequestResolver, HttpServletRequest request,
@@ -94,9 +93,6 @@ public class Utils extends Constants{
             userIdCookie.setMaxAge(0); // This will delete the cookie
             response.addCookie(userIdCookie);
 
-//            response.addHeader("Set-Cookie", USER_ID.concat(EQUALS)
-//                    .concat("; Path=/; HttpOnly; Max-Age=0; Domain=").concat(domain)
-//                    .concat("; SameSite=None"));
             log.debug("printing cookies for response for removing userId : {}", response.getHeaders("Set-Cookie"));
             return;
         }
@@ -110,10 +106,6 @@ public class Utils extends Constants{
             userIdCookie.setMaxAge(60 * 60 * 24 * 30); // 30 days
             response.addCookie(userIdCookie);
 
-//            response.addHeader("Set-Cookie", USER_ID.concat(EQUALS).concat(apiRequestResolver.getUserId())
-//                    .concat("; Path=/; HttpOnly; Max-Age=").concat(String.valueOf(60 * 60 * 24 * 30))
-//                    .concat("; Domain=").concat(domain)
-//                    .concat("; SameSite=None"));
             log.debug("printing cookies for response for adding userId : {}", response.getHeaders("Set-Cookie"));
             return;
         }

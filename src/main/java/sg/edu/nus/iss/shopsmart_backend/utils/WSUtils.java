@@ -45,9 +45,6 @@ public class WSUtils extends Constants {
                 .build();
     }
 
-//    public CompletableFuture<Response> makeWSCall(String apiKey, JsonNode data, Map<String, String> headers,
-//                                                  Map<String, String> queryParams, String additionalUriData)
-
     public CompletableFuture<Response> makeWSCall(String url, JsonNode data, Map<String, String> headers, HttpMethod method,
                                                   long connectTimeout, long readTImeout, String returnClassType){
         if(returnClassType.equalsIgnoreCase("String")){
@@ -58,7 +55,6 @@ public class WSUtils extends Constants {
             return makeWSCallObject(url, data, headers, method, connectTimeout, readTImeout);
         }
     }
-
 
     public CompletableFuture<Response> makeWSCallObject(String url, JsonNode data, Map<String, String> headers, HttpMethod method,
                                                   long connectTimeout, long readTimeout) {

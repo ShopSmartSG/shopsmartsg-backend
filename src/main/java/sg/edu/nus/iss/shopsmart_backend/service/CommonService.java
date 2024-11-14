@@ -68,11 +68,7 @@ public class CommonService extends Constants {
         // Extract session information
         log.info("{} Extracting or setting session information from request", apiRequestResolver.getCorrelationId());
         String sessionId= "";
-//        HttpSession session = request.getSession(false);
         log.debug("{} getting jsessionId from cookies", apiRequestResolver.getCorrelationId());
-//        if (session != null) {
-//            checkAndUpdateSessionData(apiRequestResolver, sessionId, getExistingSessionData(session.getId()));
-//        } else
         if(cookies.containsKey(SESSION_ID) && StringUtils.isNotEmpty(cookies.get(SESSION_ID))){
             sessionId = cookies.get(SESSION_ID);
             checkAndUpdateSessionData(apiRequestResolver, sessionId, getExistingSessionData(cookies.get(SESSION_ID)));
@@ -146,10 +142,8 @@ public class CommonService extends Constants {
         Map<String, String> sessionData = new HashMap<>();
         sessionData.put(SESSION_ID, sessionId);
         sessionData.put(IS_LOGGED_IN, "false");
-//        sessionData.put(CREATED_AT, String.valueOf(System.currentTimeMillis()));
         sessionData.put(VALID_TILL, String.valueOf(System.currentTimeMillis() + 30 * 60 * 1000));
         redisManager.setHashMap(REDIS_SESSION_PREFIX.concat(sessionId), sessionData);
-//        redisManager.expire(REDIS_SESSION_PREFIX.concat(sessionId), 30 * 60);
         return sessionData;
     }
 
