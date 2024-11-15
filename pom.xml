@@ -28,6 +28,12 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+		<sonar.coverage.exclusions>**/sg/edu/nus/iss/shopsmart_backend/ShopsmartBackendApplication.java,
+			**/sg/edu/nus/iss/shopsmart_backend/config/**,
+			**/sg/edu/nus/iss/shopsmart_backend/exception/**,
+			**/sg/edu/nus/iss/shopsmart_backend/model/**,
+			**/sg/edu/nus/iss/shopsmart_backend/service/CommonService.java,
+			**/sg/edu/nus/iss/shopsmart_backend/utils/**</sonar.coverage.exclusions>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -129,10 +135,9 @@
 						<exclude>sg/edu/nus/iss/shopsmart_backend/ShopsmartBackendApplication.class</exclude>
 						<!-- Exclude all classes in the model package from code coverage -->
 						<exclude>sg/edu/nus/iss/shopsmart_backend/config/**</exclude>
-						<exclude>sg/edu/nus/iss/shopsmart_backend/controller/**</exclude>
+						<exclude>sg/edu/nus/iss/shopsmart_backend/exception/**</exclude>
 						<exclude>sg/edu/nus/iss/shopsmart_backend/model/**</exclude>
-						<exclude>sg/edu/nus/iss/shopsmart_backend/redis/**</exclude>
-						<exclude>sg/edu/nus/iss/shopsmart_backend/service/**</exclude>
+						<exclude>sg/edu/nus/iss/shopsmart_backend/service/CommonService.class</exclude>
 						<exclude>sg/edu/nus/iss/shopsmart_backend/util/**</exclude>
 					</excludes>
 				</configuration>
@@ -162,7 +167,7 @@
 										<limit>
 											<counter>LINE</counter>
 											<value>COVEREDRATIO</value>
-											<minimum>0%</minimum>
+											<minimum>80%</minimum>
 										</limit>
 									</limits>
 								</rule>

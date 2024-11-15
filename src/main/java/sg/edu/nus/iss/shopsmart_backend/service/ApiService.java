@@ -83,7 +83,7 @@ public class ApiService extends Constants {
         });
     }
 
-    private JsonNode addCommonFieldsToRequest(ApiRequestResolver apiRequestResolver){
+    public JsonNode addCommonFieldsToRequest(ApiRequestResolver apiRequestResolver){
         if(apiRequestResolver.getRequestBody() != null && !apiRequestResolver.getRequestBody().isNull()
                 && !apiRequestResolver.getRequestBody().isEmpty()){
             ObjectNode requestBody = (ObjectNode) apiRequestResolver.getRequestBody();
