@@ -138,7 +138,7 @@
 						<exclude>sg/edu/nus/iss/shopsmart_backend/exception/**</exclude>
 						<exclude>sg/edu/nus/iss/shopsmart_backend/model/**</exclude>
 						<exclude>sg/edu/nus/iss/shopsmart_backend/service/CommonService.class</exclude>
-						<exclude>sg/edu/nus/iss/shopsmart_backend/util/**</exclude>
+						<exclude>sg/edu/nus/iss/shopsmart_backend/utils/**</exclude>
 					</excludes>
 				</configuration>
 				<executions>
