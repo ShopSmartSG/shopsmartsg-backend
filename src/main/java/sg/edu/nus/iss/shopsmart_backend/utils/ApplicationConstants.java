@@ -20,6 +20,7 @@ public interface ApplicationConstants {
     String ADDITIONAL_URI_DATA = "additionalUriData";
     String EMAIL = "email";
     String OTP = "otp";
+    String NEEDS_USER_PROF = "needsUserProf";
     String CREATED_AT = "createdAt";
     String VALID_TILL = "validTill";
     String SESSION_ID = "sessionId";
