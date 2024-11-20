@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import sg.edu.nus.iss.shopsmart_backend.chains.*;
 import sg.edu.nus.iss.shopsmart_backend.model.ApiRequestResolver;
 import sg.edu.nus.iss.shopsmart_backend.model.ApiResponseResolver;
 import sg.edu.nus.iss.shopsmart_backend.service.CommonService;
@@ -32,8 +33,6 @@ class ProfileControllerTest extends Constants {
     private final ObjectMapper objectMapper = Json.mapper();
 
     @Mock
-    private ProfileService profileService;
-    @Mock
     private CommonService commonService;
     @Mock
     private Utils utils;
@@ -41,6 +40,14 @@ class ProfileControllerTest extends Constants {
     private HttpServletResponse httpServletResponse;
     @Mock
     private HttpServletRequest httpServletRequest;
+    @Mock
+    private GenerateOtpForRegisterChain generateOtpForRegisterChain;
+    @Mock
+    private GenerateOtpForLoginChain generateOtpForLoginChain;
+    @Mock
+    private ValidateOtpAndRegisterChain validateOtpAndRegisterChain;
+    @Mock
+    private ValidateOtpAndLoginChain validateOtpAndLoginChain;
 
     @InjectMocks
     private ProfileController profileController;
@@ -58,7 +65,7 @@ class ProfileControllerTest extends Constants {
 
         commonMocking();
 
-        when(profileService.generateOtpForRegister(any(), anyString())).thenReturn(CompletableFuture.completedFuture(apiResponseResolver));
+        when(generateOtpForRegisterChain.handleRequest(any(), anyString())).thenReturn(CompletableFuture.completedFuture(apiResponseResolver));
         ResponseEntity<JsonNode> response = profileController.generateOtpForRegister(CUSTOMER, objectMapper.createObjectNode(),
                 httpServletRequest, httpServletResponse).get();
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -76,7 +83,7 @@ class ProfileControllerTest extends Constants {
         commonMocking();
         doNothing().when(commonService).updateUserIdInRedisInSessionData(any());
 
-        when(profileService.validateOtpAndRegister(any(), anyString())).thenReturn(CompletableFuture.completedFuture(apiResponseResolver));
+        when(validateOtpAndRegisterChain.handleRequest(any(), anyString())).thenReturn(CompletableFuture.completedFuture(apiResponseResolver));
         ResponseEntity<JsonNode> response = profileController.verifyOtpForRegister(CUSTOMER, objectMapper.createObjectNode(),
                 httpServletRequest, httpServletResponse).get();
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -91,7 +98,7 @@ class ProfileControllerTest extends Constants {
 
         commonMocking();
 
-        when(profileService.generateOtpForLogin(any(), anyString())).thenReturn(CompletableFuture.completedFuture(apiResponseResolver));
+        when(generateOtpForLoginChain.handleRequest(any(), anyString())).thenReturn(CompletableFuture.completedFuture(apiResponseResolver));
         ResponseEntity<JsonNode> response = profileController.generateOtpForLogin(CUSTOMER, objectMapper.createObjectNode(),
                 httpServletRequest, httpServletResponse).get();
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -109,7 +116,7 @@ class ProfileControllerTest extends Constants {
         commonMocking();
         doNothing().when(commonService).updateUserIdInRedisInSessionData(any());
 
-        when(profileService.validateOtpAndLogin(any(), anyString())).thenReturn(CompletableFuture.completedFuture(apiResponseResolver));
+        when(validateOtpAndLoginChain.handleRequest(any(), anyString())).thenReturn(CompletableFuture.completedFuture(apiResponseResolver));
         ResponseEntity<JsonNode> response = profileController.verifyOtpForLogin(CUSTOMER, objectMapper.createObjectNode(),
                 httpServletRequest, httpServletResponse).get();
         assertEquals(HttpStatus.OK, response.getStatusCode());

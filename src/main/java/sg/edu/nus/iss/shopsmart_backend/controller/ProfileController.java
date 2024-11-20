@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import sg.edu.nus.iss.shopsmart_backend.chains.*;
 import sg.edu.nus.iss.shopsmart_backend.model.ApiRequestResolver;
 import sg.edu.nus.iss.shopsmart_backend.service.CommonService;
 import sg.edu.nus.iss.shopsmart_backend.service.ProfileService;
@@ -24,15 +25,23 @@ import java.util.concurrent.CompletableFuture;
 @Tag(name = "Profile Login flows", description = "Handle login for customers and merchants profiles via APIs")
 public class ProfileController extends Constants {
     private static final Logger log = LoggerFactory.getLogger(ProfileController.class);
-    private final ProfileService profileService;
     private final CommonService commonService;
     private final Utils utils;
+    private final Chain generateOtpForRegisterChain;
+    private final Chain generateOtpForLoginChain;
+    private final Chain validateOtpAndRegisterChain;
+    private final Chain validateOtpAndLoginChain;
 
     @Autowired
-    public ProfileController(ProfileService profileService, CommonService commonService, Utils utils) {
-        this.profileService = profileService;
+    public ProfileController(CommonService commonService, Utils utils, GenerateOtpForRegisterChain generateOtpForRegisterChain,
+                             GenerateOtpForLoginChain generateOtpForLoginChain, ValidateOtpAndRegisterChain validateOtpAndRegisterChain,
+                             ValidateOtpAndLoginChain validateOtpAndLoginChain) {
         this.commonService = commonService;
         this.utils = utils;
+        this.generateOtpForRegisterChain = generateOtpForRegisterChain;
+        this.generateOtpForLoginChain = generateOtpForLoginChain;
+        this.validateOtpAndRegisterChain = validateOtpAndRegisterChain;
+        this.validateOtpAndLoginChain = validateOtpAndLoginChain;
     }
 
     @PostMapping("/register/generateOtp/{profileType}")
@@ -41,7 +50,7 @@ public class ProfileController extends Constants {
         log.info("Starting flow for generate OTP for registration for profileType: {}", profileType);
         ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, GENERATE_OTP, requestBody);
         long startTime = System.currentTimeMillis();
-        return profileService.generateOtpForRegister(apiRequestResolver, profileType).thenApplyAsync(resp ->{
+        return generateOtpForRegisterChain.handleRequest(apiRequestResolver, profileType).thenApplyAsync(resp ->{
             log.info("{} Time taken to complete otp generation for registration is {} ms", apiRequestResolver.getLoggerString(),
                     (System.currentTimeMillis() - startTime));
             setRequiredCookies(apiRequestResolver, request, response);
@@ -57,7 +66,7 @@ public class ProfileController extends Constants {
         log.info("Starting flow for validate OTP and createProfile for registration for profileType: {}", profileType);
         ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, VALIDATE_OTP, requestBody);
         long startTime = System.currentTimeMillis();
-        return profileService.validateOtpAndRegister(apiRequestResolver, profileType).thenApplyAsync(resp ->{
+        return validateOtpAndRegisterChain.handleRequest(apiRequestResolver, profileType).thenApplyAsync(resp ->{
                 log.info("{} Time taken to complete validate otp and create profile is {} ms", apiRequestResolver.getLoggerString(),
                         (System.currentTimeMillis() - startTime));
             String userId = JsonUtils.getText(resp.getRespData(), USER_ID);
@@ -80,7 +89,7 @@ public class ProfileController extends Constants {
         log.info("Starting flow for generate OTP for login for profileType: {}", profileType);
         ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, GENERATE_OTP, requestBody);
         long startTime = System.currentTimeMillis();
-        return profileService.generateOtpForLogin(apiRequestResolver, profileType).thenApplyAsync(resp ->{
+        return generateOtpForLoginChain.handleRequest(apiRequestResolver, profileType).thenApplyAsync(resp ->{
             log.info("{} Time taken to complete otp generation for login is {} ms", apiRequestResolver.getLoggerString(),
                     (System.currentTimeMillis() - startTime));
             setRequiredCookies(apiRequestResolver, request, response);
@@ -96,7 +105,7 @@ public class ProfileController extends Constants {
         log.info("Starting flow for validate OTP and createProfile for login for profileType: {}", profileType);
         ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, VALIDATE_OTP, requestBody);
         long startTime = System.currentTimeMillis();
-        return profileService.validateOtpAndLogin(apiRequestResolver, profileType).thenApplyAsync(resp ->{
+        return validateOtpAndLoginChain.handleRequest(apiRequestResolver, profileType).thenApplyAsync(resp ->{
             log.info("{} Time taken to complete validate otp and fetch userId is {} ms", apiRequestResolver.getLoggerString(),
                     (System.currentTimeMillis() - startTime));
             String userId = JsonUtils.getText(resp.getRespData(), USER_ID);
