@@ -50,7 +50,6 @@ public class ProfileController extends Constants {
         log.info("Starting flow for generate OTP for registration for profileType: {}", profileType);
         ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, GENERATE_OTP, requestBody);
         long startTime = System.currentTimeMillis();
-//        return profileService.generateOtpForRegister(apiRequestResolver, profileType).thenApplyAsync(resp ->{
         return generateOtpForRegisterChain.handleRequest(apiRequestResolver, profileType).thenApplyAsync(resp ->{
             log.info("{} Time taken to complete otp generation for registration is {} ms", apiRequestResolver.getLoggerString(),
                     (System.currentTimeMillis() - startTime));
@@ -67,7 +66,6 @@ public class ProfileController extends Constants {
         log.info("Starting flow for validate OTP and createProfile for registration for profileType: {}", profileType);
         ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, VALIDATE_OTP, requestBody);
         long startTime = System.currentTimeMillis();
-//        return profileService.validateOtpAndRegister(apiRequestResolver, profileType).thenApplyAsync(resp ->{
         return validateOtpAndRegisterChain.handleRequest(apiRequestResolver, profileType).thenApplyAsync(resp ->{
                 log.info("{} Time taken to complete validate otp and create profile is {} ms", apiRequestResolver.getLoggerString(),
                         (System.currentTimeMillis() - startTime));
@@ -91,7 +89,6 @@ public class ProfileController extends Constants {
         log.info("Starting flow for generate OTP for login for profileType: {}", profileType);
         ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, GENERATE_OTP, requestBody);
         long startTime = System.currentTimeMillis();
-//        return profileService.generateOtpForLogin(apiRequestResolver, profileType).thenApplyAsync(resp ->{
         return generateOtpForLoginChain.handleRequest(apiRequestResolver, profileType).thenApplyAsync(resp ->{
             log.info("{} Time taken to complete otp generation for login is {} ms", apiRequestResolver.getLoggerString(),
                     (System.currentTimeMillis() - startTime));
@@ -108,7 +105,6 @@ public class ProfileController extends Constants {
         log.info("Starting flow for validate OTP and createProfile for login for profileType: {}", profileType);
         ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, VALIDATE_OTP, requestBody);
         long startTime = System.currentTimeMillis();
-//        return profileService.validateOtpAndLogin(apiRequestResolver, profileType).thenApplyAsync(resp ->{
         return validateOtpAndLoginChain.handleRequest(apiRequestResolver, profileType).thenApplyAsync(resp ->{
             log.info("{} Time taken to complete validate otp and fetch userId is {} ms", apiRequestResolver.getLoggerString(),
                     (System.currentTimeMillis() - startTime));

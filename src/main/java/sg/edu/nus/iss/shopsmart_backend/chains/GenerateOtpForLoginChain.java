@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import sg.edu.nus.iss.shopsmart_backend.handlers.FetchUserIdForEmailHandler;
+import sg.edu.nus.iss.shopsmart_backend.handlers.CheckProfileExistsHandler;
 import sg.edu.nus.iss.shopsmart_backend.handlers.GenerateOtpHandler;
 import sg.edu.nus.iss.shopsmart_backend.handlers.Handler;
 import sg.edu.nus.iss.shopsmart_backend.model.ApiRequestResolver;
@@ -32,13 +32,13 @@ public class GenerateOtpForLoginChain extends Constants implements Chain{
     @Autowired
     public GenerateOtpForLoginChain(ProfileService profileService) {
         this.profileService = profileService;
-        Handler fetchUserIdForEmailHandler = new FetchUserIdForEmailHandler(profileService);
+        Handler checkProfileExistsHandler = new CheckProfileExistsHandler(profileService);
         Handler generateOtpHandler = new GenerateOtpHandler(profileService);
 
         generateOtpHandler.setNext(null);
-        fetchUserIdForEmailHandler.setNext(generateOtpHandler);
+        checkProfileExistsHandler.setNext(generateOtpHandler);
 
-        this.handlerChain = fetchUserIdForEmailHandler;
+        this.handlerChain = checkProfileExistsHandler;
     }
 
     @Override
