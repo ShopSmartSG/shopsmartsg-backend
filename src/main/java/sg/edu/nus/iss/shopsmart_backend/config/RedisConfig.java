@@ -26,15 +26,18 @@ public class RedisConfig extends Constants {
     @Value("${"+REDIS_DB_NO_KEY+"}")
     private int redisDb;
 
+    @Value("${"+REDIS_USE_SSL+"}")
+    private boolean useRedisSsl;
+
     @Bean
     public JedisPool jedisPool() {
-        log.info("Creating JedisPool with host: {}, port: {}, db: {} and password : {}", redisHost, redisPort, redisDb, redisPassword);
+        log.info("Creating JedisPool with host: {}, port: {}, db: {}, password : {} and useRedisSsl: {}", redisHost, redisPort, redisDb, redisPassword, useRedisSsl);
         JedisPoolConfig poolConfig = new JedisPoolConfig();
         if (StringUtils.isEmpty(redisPassword)) {
             log.info("did not find redis password, so skipping it");
-            return new JedisPool(poolConfig, redisHost, redisPort, 2000,null, redisDb);
+            return new JedisPool(poolConfig, redisHost, redisPort, 2000,null, redisDb, useRedisSsl);
         } else {
-            return new JedisPool(poolConfig, redisHost, redisPort, 2000, redisPassword, redisDb);
+            return new JedisPool(poolConfig, redisHost, redisPort, 2000, redisPassword, redisDb, useRedisSsl);
         }
     }
 }
