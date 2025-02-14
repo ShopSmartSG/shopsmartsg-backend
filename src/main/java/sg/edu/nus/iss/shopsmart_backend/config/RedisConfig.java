@@ -55,7 +55,7 @@ public class RedisConfig extends Constants {
                 CertificateFactory cf = CertificateFactory.getInstance("X.509");
                 try (InputStream caInput = new FileInputStream(sslCaCertPath)) {
                     Certificate ca = cf.generateCertificate(caInput);
-                    log.info("Loaded CA cert: {}", ((X509Certificate) ca).getSubjectDN());
+                    log.info("Loaded CA cert: {}", ((X509Certificate) ca).getSubjectX500Principal());
 
                     // Create a KeyStore containing our trusted CA.
                     KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
