@@ -6,6 +6,7 @@ public interface RedisKeys {
     String REDIS_PASSWORD_KEY = "redis.password";
     String REDIS_DB_NO_KEY = "redis.db";
     String REDIS_USE_SSL = "redis.use.ssl";
+    String REDIS_SSL_CA_CERT_PATH = "redis.ssl.cert.path";
     String REDIS_DDO_PREFIX = "ss:ddo:";
     String REDIS_ENVIRONMENT_DEVELOPMENT = "ss:environment:development";
     String REDIS_SESSION_PREFIX = "ss:session:";
