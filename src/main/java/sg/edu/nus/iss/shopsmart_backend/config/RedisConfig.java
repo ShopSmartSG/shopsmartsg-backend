@@ -73,7 +73,7 @@ public class RedisConfig extends Constants {
                     sslParameters = sslContext.getDefaultSSLParameters();
 
                     // You can implement proper hostname verification here if needed.
-                    hostnameVerifier = (hostname, session) -> true;
+                    hostnameVerifier = HttpsURLConnection.getDefaultHostnameVerifier();
                     return new JedisPool(poolConfig, redisHost, redisPort, 2000, null, redisDb, true, sslSocketFactory, sslParameters, hostnameVerifier);
                 }
             }catch (Exception e){
