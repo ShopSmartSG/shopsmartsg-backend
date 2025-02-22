@@ -85,14 +85,12 @@ jobs:
 
       - name: Build, Test, and Analyze with Maven
         run: |
-          mvn clean test
-          mvn jacoco:report
-#          mvn clean verify sonar:sonar \
-#            -Dsonar.projectKey=ShopSmartSG_shopsmartsg-backend \
-#            -Dsonar.organization=shopsmartsg \
-#            -Dsonar.host.url=https://sonarcloud.io \
-#            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
-#            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+          mvn clean verify sonar:sonar \
+            -Dsonar.projectKey=ShopSmartSG_shopsmartsg-backend \
+            -Dsonar.organization=shopsmartsg \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
