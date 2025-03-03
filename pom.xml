@@ -204,7 +204,6 @@
 				<version>12.1.0</version>
 				<configuration>
 					<nvdApiKeyEnvironmentVariable>NVD_API_KEY</nvdApiKeyEnvironmentVariable>
-<!--					<nvdApiKey>${env.NVD_API_KEY}</nvdApiKey>-->
 					<autoUpdate>true</autoUpdate>
 					<failOnError>false</failOnError>
 					<connectionTimeout>60000</connectionTimeout>
