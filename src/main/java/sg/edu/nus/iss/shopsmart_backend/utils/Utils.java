@@ -59,10 +59,12 @@ public class Utils extends Constants{
                                                    HttpServletResponse response) {
         log.info("Setting session id {} in cookies and session attributes", apiRequestResolver.getSessionId());
         String sessionId = apiRequestResolver.getSessionId();
-        String domain = request.getServerName();
-        // Set session ID in response cookies
+//        String domain = request.getServerName();
+        String domain = ".shopsmartsg.com";
+
         Cookie sessionCookie = new Cookie(SESSION_ID, sessionId);
         sessionCookie.setPath("/");
+        sessionCookie.setSecure(true);
         sessionCookie.setHttpOnly(true);
         sessionCookie.setDomain(domain);
         sessionCookie.setAttribute("SameSite", "Lax");
@@ -75,7 +77,8 @@ public class Utils extends Constants{
     public void setUserIdCookieNeededOrRemove(ApiRequestResolver apiRequestResolver, HttpServletRequest request,
                                               HttpServletResponse response){
         log.debug("starting setting of userid in cookies for {}", apiRequestResolver);
-        String domain = request.getServerName();
+//        String domain = request.getServerName();
+        String domain = ".shopsmartsg.com";
         Cookie userIdCookie;
         String existingUserId = "";
         if(apiRequestResolver.getCookies().containsKey(USER_ID) && apiRequestResolver.getCookies().get(USER_ID)!=null
@@ -88,6 +91,7 @@ public class Utils extends Constants{
             userIdCookie = new Cookie(USER_ID, null);
             userIdCookie.setPath(SLASH);
             userIdCookie.setHttpOnly(true);
+            userIdCookie.setSecure(true);
             userIdCookie.setDomain(domain);
             userIdCookie.setAttribute("SameSite", "Lax");
             userIdCookie.setMaxAge(0); // This will delete the cookie
@@ -101,6 +105,7 @@ public class Utils extends Constants{
             userIdCookie = new Cookie(USER_ID, apiRequestResolver.getUserId());
             userIdCookie.setPath(SLASH);
             userIdCookie.setHttpOnly(true);
+            userIdCookie.setSecure(true);
             userIdCookie.setDomain(domain);
             userIdCookie.setAttribute("SameSite", "Lax");
             userIdCookie.setMaxAge(60 * 60 * 24 * 30); // 30 days

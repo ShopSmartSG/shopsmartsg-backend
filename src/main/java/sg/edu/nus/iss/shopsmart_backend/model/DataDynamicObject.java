@@ -9,6 +9,7 @@ public class DataDynamicObject {
     private String api;
     private String service;
     private String method;
+    private boolean protectedApi; // by default we should keep this as true right?
     private Map<String, String> params;
     private Map<String, String> headers;
     private String returnClass = "object";

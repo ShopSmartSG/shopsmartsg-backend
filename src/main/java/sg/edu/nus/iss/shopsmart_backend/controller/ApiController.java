@@ -9,6 +9,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.web.bind.annotation.*;
 import sg.edu.nus.iss.shopsmart_backend.model.ApiRequestResolver;
 import sg.edu.nus.iss.shopsmart_backend.service.ApiService;
@@ -40,12 +44,42 @@ public class ApiController extends Constants {
         this.utils = utils;
     }
 
+
+    //!!!!!! this is important, in the details part see if ApiRequestResolver is present and if yes then use that with updated api-key from actual request
+
+    private ApiRequestResolver getApiRequestResolver(Authentication authentication, HttpServletRequest request, String apiKey, JsonNode requestBody) {
+        ApiRequestResolver apiRequestResolver;
+        if(authentication == null || authentication.getDetails() == null){
+            log.info("No authentication or auth details found in request for apiKey {}", apiKey);
+            apiRequestResolver = commonService.createApiResolverRequest(request, apiKey, requestBody);
+            apiRequestResolver.setLoggedIn(false);
+            apiRequestResolver.setUserId(null);
+            return apiRequestResolver;
+        }
+        log.info("Authentication and auth details found in request for apiKey {}", apiKey);
+        log.debug("Authentication details found in request for apiKey {} is {}", apiKey, authentication.getDetails());
+        apiRequestResolver = (ApiRequestResolver) authentication.getDetails();
+        apiRequestResolver.setApiKey(apiKey);
+        apiRequestResolver.setRequestBody(requestBody);
+
+        String userIdByPrinciple = (String) authentication.getPrincipal();
+        apiRequestResolver.setUserId(userIdByPrinciple);
+        if(userIdByPrinciple==null || userIdByPrinciple.isEmpty()){
+            apiRequestResolver.setLoggedIn(false);
+        }else{
+            apiRequestResolver.setLoggedIn(true);
+        }
+        return apiRequestResolver;
+    }
+
     @GetMapping("/{api-key}/**")
-    public CompletableFuture<ResponseEntity<JsonNode>> handleGetRequest(@PathVariable(name = "api-key") String apiKey,
-            HttpServletRequest request, HttpServletResponse response) {
+    public CompletableFuture<ResponseEntity<JsonNode>> handleGetRequest(@CurrentSecurityContext(expression = "authentication") Authentication authentication,
+                                                                        @PathVariable(name = "api-key") String apiKey,
+                                                                        HttpServletRequest request, HttpServletResponse response) {
         HttpHeaders headers = Utils.createHeaders();
         log.info("Handling GET request for API: {}", apiKey);
-        ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, apiKey, null);
+//        ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, apiKey, null);
+        ApiRequestResolver apiRequestResolver = getApiRequestResolver(authentication, request, apiKey, null);
         //perform jwt validation check here
         long startTime = System.currentTimeMillis();
         return apiService.processApiRequest(apiRequestResolver)
@@ -60,11 +94,13 @@ public class ApiController extends Constants {
     }
 
     @PostMapping("/{api-key}/**")
-    public CompletableFuture<ResponseEntity<JsonNode>> handlePostRequest(@PathVariable(name = "api-key") String apiKey,
-            @RequestBody JsonNode requestBody, HttpServletRequest request, HttpServletResponse response) {
+    public CompletableFuture<ResponseEntity<JsonNode>> handlePostRequest(@AuthenticationPrincipal Authentication authentication,
+                                                                         @PathVariable(name = "api-key") String apiKey, @RequestBody JsonNode requestBody,
+                                                                         HttpServletRequest request, HttpServletResponse response) {
         log.info("Handling POST request for API: {}", apiKey);
         HttpHeaders headers = Utils.createHeaders();
-        ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, apiKey, requestBody);
+//        ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, apiKey, requestBody);
+        ApiRequestResolver apiRequestResolver = getApiRequestResolver(authentication, request, apiKey, requestBody);
         //perform jwt validation check here
         long startTime = System.currentTimeMillis();
         return apiService.processApiRequest(apiRequestResolver)
@@ -79,11 +115,13 @@ public class ApiController extends Constants {
     }
 
     @PutMapping("/{api-key}/**")
-    public CompletableFuture<ResponseEntity<JsonNode>> handlePutRequest(@PathVariable(name = "api-key") String apiKey,
-            @RequestBody JsonNode requestBody, HttpServletRequest request, HttpServletResponse response) {
+    public CompletableFuture<ResponseEntity<JsonNode>> handlePutRequest(@AuthenticationPrincipal Authentication authentication,
+                                                                        @PathVariable(name = "api-key") String apiKey, @RequestBody JsonNode requestBody,
+                                                                        HttpServletRequest request, HttpServletResponse response) {
         log.info("Handling PUT request for API: {}", apiKey);
         HttpHeaders headers = Utils.createHeaders();
-        ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, apiKey, requestBody);
+//        ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, apiKey, requestBody);
+        ApiRequestResolver apiRequestResolver = getApiRequestResolver(authentication, request, apiKey, requestBody);
         //perform jwt validation check here
         long startTime = System.currentTimeMillis();
         return apiService.processApiRequest(apiRequestResolver)
@@ -98,11 +136,13 @@ public class ApiController extends Constants {
     }
 
     @PatchMapping("/{api-key}/**")
-    public CompletableFuture<ResponseEntity<JsonNode>> handlePatchRequest(@PathVariable(name = "api-key") String apiKey,
-            @RequestBody JsonNode requestBody, HttpServletRequest request, HttpServletResponse response) {
+    public CompletableFuture<ResponseEntity<JsonNode>> handlePatchRequest(@AuthenticationPrincipal Authentication authentication,
+                                                                          @PathVariable(name = "api-key") String apiKey, @RequestBody JsonNode requestBody,
+                                                                          HttpServletRequest request, HttpServletResponse response) {
         log.info("Handling PATCH request for API: {}", apiKey);
         HttpHeaders headers = Utils.createHeaders();
-        ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, apiKey, requestBody);
+//        ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, apiKey, requestBody);
+        ApiRequestResolver apiRequestResolver = getApiRequestResolver(authentication, request, apiKey, requestBody);
         //perform jwt validation check here
         long startTime = System.currentTimeMillis();
         return apiService.processApiRequest(apiRequestResolver)
@@ -117,11 +157,13 @@ public class ApiController extends Constants {
     }
 
     @DeleteMapping("/{api-key}/**")
-    public CompletableFuture<ResponseEntity<JsonNode>> handleDeleteRequest(@PathVariable(name = "api-key") String apiKey,
-            HttpServletRequest request, HttpServletResponse response) {
+    public CompletableFuture<ResponseEntity<JsonNode>> handleDeleteRequest(@AuthenticationPrincipal Authentication authentication,
+                                                                           @PathVariable(name = "api-key") String apiKey, HttpServletRequest request,
+                                                                           HttpServletResponse response) {
         log.info("Handling DELETE request for API: {}", apiKey);
         HttpHeaders headers = Utils.createHeaders();
-        ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, apiKey, null);
+//        ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, apiKey, null);
+        ApiRequestResolver apiRequestResolver = getApiRequestResolver(authentication, request, apiKey, null);
         //perform jwt validation check here
         long startTime = System.currentTimeMillis();
         return apiService.processApiRequest(apiRequestResolver)
@@ -139,6 +181,6 @@ public class ApiController extends Constants {
             HttpServletResponse response) {
         log.info("{} starting to set required session and user cookies for general api flows.", apiRequestResolver.getLoggerString());
         utils.setSessionAndCookieDataForSession(apiRequestResolver, request, response);
-        utils.setUserIdCookieNeededOrRemove(apiRequestResolver, request, response);
+//        utils.setUserIdCookieNeededOrRemove(apiRequestResolver, request, response);
     }
 }

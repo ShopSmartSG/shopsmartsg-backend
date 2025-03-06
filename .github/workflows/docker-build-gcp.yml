@@ -3,8 +3,8 @@ name: Build and Push to GCP Artifact Registry
 on:
   push:
     branches:
-#      - feature/gcp_image
-      - Main
+      - feature/gcp_image
+#      - Main
 #  pull_request:
 #    branches:
 #      - Main

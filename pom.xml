@@ -32,8 +32,11 @@
 			**/sg/edu/nus/iss/shopsmart_backend/chains/**,
 			**/sg/edu/nus/iss/shopsmart_backend/config/**,
 			**/sg/edu/nus/iss/shopsmart_backend/exception/**,
+			**/sg/edu/nus/iss/shopsmart_backend/filter/**,
 			**/sg/edu/nus/iss/shopsmart_backend/handlers/Handler.java,
 			**/sg/edu/nus/iss/shopsmart_backend/model/**,
+			**/sg/edu/nus/iss/shopsmart_backend/controller/AuthController.java,
+			**/sg/edu/nus/iss/shopsmart_backend/service/AuthService.java,
 			**/sg/edu/nus/iss/shopsmart_backend/service/CommonService.java,
 			**/sg/edu/nus/iss/shopsmart_backend/utils/**</sonar.coverage.exclusions>
 	</properties>
@@ -47,6 +50,14 @@
 			<artifactId>logstash-logback-encoder</artifactId>
 			<version>5.2</version>
 			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-oauth2-client</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -139,8 +150,11 @@
 						<exclude>sg/edu/nus/iss/shopsmart_backend/chains/**</exclude>
 						<exclude>sg/edu/nus/iss/shopsmart_backend/config/**</exclude>
 						<exclude>sg/edu/nus/iss/shopsmart_backend/exception/**</exclude>
+						<exclude>sg/edu/nus/iss/shopsmart_backend/filter/**</exclude>
 						<exclude>sg/edu/nus/iss/shopsmart_backend/handlers/Handler.class</exclude>
 						<exclude>sg/edu/nus/iss/shopsmart_backend/model/**</exclude>
+						<exclude>sg/edu/nus/iss/shopsmart_backend/controller/AuthController.class</exclude>
+						<exclude>sg/edu/nus/iss/shopsmart_backend/service/AuthService.class</exclude>
 						<exclude>sg/edu/nus/iss/shopsmart_backend/service/CommonService.class</exclude>
 						<exclude>sg/edu/nus/iss/shopsmart_backend/utils/**</exclude>
 					</excludes>

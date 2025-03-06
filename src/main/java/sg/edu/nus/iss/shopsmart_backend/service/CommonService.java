@@ -68,14 +68,14 @@ public class CommonService extends Constants {
         // Extract session information
         log.info("{} Extracting or setting session information from request", apiRequestResolver.getCorrelationId());
         String sessionId= "";
-        log.debug("{} getting jsessionId from cookies", apiRequestResolver.getCorrelationId());
+        log.debug("{} getting sessionId from cookies", apiRequestResolver.getCorrelationId());
         if(cookies.containsKey(SESSION_ID) && StringUtils.isNotEmpty(cookies.get(SESSION_ID))){
             sessionId = cookies.get(SESSION_ID);
             checkAndUpdateSessionData(apiRequestResolver, sessionId, getExistingSessionData(cookies.get(SESSION_ID)));
         } else {
             sessionId = UUID.randomUUID().toString();
             apiRequestResolver.setSessionId(sessionId);
-            apiRequestResolver.setSessionAttributes(createNewSessionAndStore(sessionId));// Store session ID in Redis with 30 minutes validity
+            apiRequestResolver.setSessionAttributes(createNewSessionAndStore(sessionId, apiRequestResolver.getIpAddress()));// Store session ID in Redis with 30 minutes validity
         }
 
         apiRequestResolver.setLoggerString(createLoggerString(apiRequestResolver));
@@ -92,9 +92,11 @@ public class CommonService extends Constants {
         return apiRequestResolver;
     }
 
-    private boolean checkIfUserIsLoggedIn(String userId, Map<String, String> sessionData){
+    private boolean checkIfUserIsLoggedIn(Map<String, String> sessionData){
+//        return sessionData.containsKey(IS_LOGGED_IN) && TRUE.equalsIgnoreCase(sessionData.get(IS_LOGGED_IN))
+//                && sessionData.containsKey(USER_ID) && StringUtils.isNotEmpty(userId) && userId.equals(sessionData.get(USER_ID));
         return sessionData.containsKey(IS_LOGGED_IN) && TRUE.equalsIgnoreCase(sessionData.get(IS_LOGGED_IN))
-                && sessionData.containsKey(USER_ID) && StringUtils.isNotEmpty(userId) && userId.equals(sessionData.get(USER_ID));
+                && sessionData.containsKey(USER_ID) && StringUtils.isNotEmpty(sessionData.get(USER_ID));
     }
 
     private void checkAndUpdateSessionData(ApiRequestResolver apiRequestResolver,String sessionId, Map<String, String> sessionData){
@@ -102,18 +104,20 @@ public class CommonService extends Constants {
             log.info("No session data found for session id: {}, will set new session in redis", sessionId);
             sessionId = UUID.randomUUID().toString();
             apiRequestResolver.setSessionId(sessionId);
-            apiRequestResolver.setSessionAttributes(createNewSessionAndStore(sessionId));
+            apiRequestResolver.setSessionAttributes(createNewSessionAndStore(sessionId, apiRequestResolver.getIpAddress()));
             apiRequestResolver.setLoggedIn(false);
         } else {
             apiRequestResolver.setSessionId(sessionId);
-            if(checkIfUserIsLoggedIn(apiRequestResolver.getCookies().get(USER_ID), sessionData)){
-                log.info("Session {} is logged in for with userId {} in session data matching with cookie val {}, so extending the session.",
-                        sessionId, sessionData.get(USER_ID), apiRequestResolver.getCookies().get(USER_ID));
+//            if(checkIfUserIsLoggedIn(apiRequestResolver.getCookies().get(USER_ID), sessionData)){
+            if(checkIfUserIsLoggedIn(sessionData)){
+//                log.info("Session {} is logged in for with userId {} in session data matching with cookie val {}, so extending the session.", sessionId, sessionData.get(USER_ID), apiRequestResolver.getCookies().get(USER_ID));
+                log.info("Session {} is logged in for with userId {} in session data and maked as loggedin, so extending the session.",
+                        sessionId, sessionData.get(USER_ID));
                 sessionData.put(VALID_TILL, String.valueOf(System.currentTimeMillis() + 30 * 60 * 1000));
                 redisManager.setHashMap(REDIS_SESSION_PREFIX.concat(sessionId), sessionData);
                 apiRequestResolver.setSessionAttributes(sessionData);
-                apiRequestResolver.setUserId(sessionData.get(USER_ID));
-                apiRequestResolver.setLoggedIn(true);
+//                apiRequestResolver.setUserId(sessionData.get(USER_ID));
+//                apiRequestResolver.setLoggedIn(true);
             } else {
                 log.info("Session {} is not logged in, will check if session change is needed or not", sessionId);
                 if(System.currentTimeMillis() > Long.parseLong(sessionData.get(VALID_TILL))){
@@ -121,7 +125,7 @@ public class CommonService extends Constants {
                     log.info("Session is expired, will create new session");
                     sessionId = UUID.randomUUID().toString();
                     apiRequestResolver.setSessionId(sessionId);
-                    apiRequestResolver.setSessionAttributes(createNewSessionAndStore(sessionId));
+                    apiRequestResolver.setSessionAttributes(createNewSessionAndStore(sessionId, apiRequestResolver.getIpAddress()));
                     apiRequestResolver.setLoggedIn(false);
                 } else {
                     log.info("Session {} is not expired, will update the session data", sessionId);
@@ -129,6 +133,7 @@ public class CommonService extends Constants {
                     //also we need to remove userId from session data if present
                     if(sessionData.containsKey(USER_ID) && StringUtils.isNotEmpty(sessionData.get(USER_ID))){
                         sessionData.remove(USER_ID);
+                        sessionData.remove(IS_LOGGED_IN);
                         apiRequestResolver.setLoggedIn(false);
                     }
                     redisManager.setHashMap(REDIS_SESSION_PREFIX.concat(sessionId), sessionData);
@@ -138,10 +143,11 @@ public class CommonService extends Constants {
         }
     }
 
-    private Map<String, String> createNewSessionAndStore(String sessionId){
+    private Map<String, String> createNewSessionAndStore(String sessionId, String ipAddress){
         Map<String, String> sessionData = new HashMap<>();
         sessionData.put(SESSION_ID, sessionId);
         sessionData.put(IS_LOGGED_IN, "false");
+        sessionData.put(IP_ADDRESS, ipAddress);
         sessionData.put(VALID_TILL, String.valueOf(System.currentTimeMillis() + 30 * 60 * 1000));
         redisManager.setHashMap(REDIS_SESSION_PREFIX.concat(sessionId), sessionData);
         return sessionData;
