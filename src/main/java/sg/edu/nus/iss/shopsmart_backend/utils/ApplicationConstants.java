@@ -1,5 +1,7 @@
 package sg.edu.nus.iss.shopsmart_backend.utils;
 
+import java.util.List;
+
 public interface ApplicationConstants {
     String STATUS = "status";
     String STATUS_CODE = "statusCode";
@@ -40,6 +42,8 @@ public interface ApplicationConstants {
     String ADMIN_USER_ID = "adminUserId";
     String ADMIN_EMAIL_ID = "adminEmailId";
     String POST_BODY = "postBody";
+    List<String> PROFILE_TYPES_LIST = List.of(CUSTOMER, MERCHANT, DELIVERY);
+    String LOGIN = "login";
 
     String LOGIN_TYPE = "loginType";
     String GOOGLE = "google";
@@ -59,6 +63,7 @@ public interface ApplicationConstants {
     String RAW_ACC_LOOKUP_THROUGH_GCIP_RESP = "rawAccLookupThroughGcipResp";
     String RAW_REFRESH_ID_TOKEN_THROUGH_GCIP = "rawRefreshIdTokenThroughGcip";
     String RAW_NATIVE_LOGIN_THROUGH_GCIP_RESP = "rawNativeLoginThroughGcipResp";
+    String RAW_DELETE_ACC_THROUGH_GCIP_RESP = "rawDeleteAccThroughGcipResp";
     String ACCESS_TOKEN = "access_token";
     String PROVIDER_ID_GOOGLE = "providerId=google.com";
     String OAUTH_ID_TOKEN = "oauthIdToken";

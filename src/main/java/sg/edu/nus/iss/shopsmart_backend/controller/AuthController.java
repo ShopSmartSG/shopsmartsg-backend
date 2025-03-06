@@ -15,13 +15,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.web.bind.annotation.*;
 import sg.edu.nus.iss.shopsmart_backend.model.ApiRequestResolver;
-import sg.edu.nus.iss.shopsmart_backend.model.GcipNativeLoginTokenResp;
-import sg.edu.nus.iss.shopsmart_backend.model.GcipSignInWithIdpTokenResponse;
-import sg.edu.nus.iss.shopsmart_backend.model.OAuth2TokenExchangeResponse;
 import sg.edu.nus.iss.shopsmart_backend.service.CommonService;
 import sg.edu.nus.iss.shopsmart_backend.service.AuthService;
 import sg.edu.nus.iss.shopsmart_backend.service.ProfileService;
@@ -58,6 +54,12 @@ public class AuthController extends Constants {
     public ResponseEntity<String> googleLoginUrl(@PathVariable(name = "profile-type") String profileType,
                                                  HttpServletRequest request, HttpServletResponse response){
         log.info("Starting flow for google login for profile type: {}", profileType);
+        if(!PROFILE_TYPES_LIST.contains(profileType)){
+            log.error("Invalid profile type received for google login: {}", profileType);
+            HttpHeaders headers = Utils.createHeaders(request);
+//            headers.setLocation(URI.create(frontendUrl.concat(QUESTION_MARK).concat("error=invalid-profile-type")));
+            return new ResponseEntity<>("Invalid profile type provided for google login", headers, HttpStatus.BAD_REQUEST);
+        }
         ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, "google-login", null);
         // Generate google login url
         String googleLoginUrl = authService.generateAuthorizationUrl(apiRequestResolver, profileType);
@@ -84,6 +86,12 @@ public class AuthController extends Constants {
                                                   @RequestParam String code, @RequestParam String state,
                                                   HttpServletRequest request, HttpServletResponse response){
         log.info("Starting flow for google callback with code : {} and state: {} for profileType: {}", code, state, profileType);
+        if(!PROFILE_TYPES_LIST.contains(profileType)){
+            log.error("Invalid profile type received for google callback: {}", profileType);
+            HttpHeaders headers = Utils.createHeaders(request);
+            headers.setLocation(URI.create(frontendUrl.concat(SLASH).concat(LOGIN).concat(QUESTION_MARK).concat("error=invalid-profile-type")));
+            return CompletableFuture.completedFuture(new ResponseEntity<>(headers, HttpStatus.FOUND));
+        }
         ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, "google-login", null);
         HttpHeaders headers = Utils.createHeaders(request);
         setRequiredCookies(apiRequestResolver, request, response);
@@ -98,6 +106,15 @@ public class AuthController extends Constants {
     public CompletableFuture<ResponseEntity<JsonNode>> nativeSignUp(@PathVariable(name = "profile-type") String profileType, @RequestBody JsonNode requestBody,
                              HttpServletRequest request, HttpServletResponse response){
         log.info("Starting flow for native sign up for profile type: {}", profileType);
+        if(!PROFILE_TYPES_LIST.contains(profileType)){
+            log.error("Invalid profile type received for native signup: {}", profileType);
+            ObjectNode responseData = mapper.createObjectNode();
+            responseData.put(STATUS, FAILURE);
+            responseData.put(MESSAGE, "Invalid profile type received for native signup");
+            HttpHeaders headers = Utils.createHeaders(request);
+//            headers.setLocation(URI.create(frontendUrl.concat(QUESTION_MARK).concat("error=invalid-profile-type")));
+            return CompletableFuture.completedFuture(new ResponseEntity<>(responseData, headers, HttpStatus.BAD_REQUEST));
+        }
         HttpHeaders headers = Utils.createHeaders(request);
         ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, "native-signup", requestBody);
         return authService.performNativeSignUp(apiRequestResolver, profileType).thenApplyAsync(apiResponseResolver -> {
@@ -118,6 +135,15 @@ public class AuthController extends Constants {
     public CompletableFuture<ResponseEntity<JsonNode>> nativeLogin(@PathVariable(name = "profile-type") String profileType, @RequestBody JsonNode requestBody,
                             HttpServletRequest request, HttpServletResponse response){
         log.info("Starting flow for native login for profile type: {}", profileType);
+        if(!PROFILE_TYPES_LIST.contains(profileType)){
+            log.error("Invalid profile type received for native login: {}", profileType);
+            ObjectNode responseData = mapper.createObjectNode();
+            responseData.put(STATUS, FAILURE);
+            responseData.put(MESSAGE, "Invalid profile type received for native login");
+            HttpHeaders headers = Utils.createHeaders(request);
+//            headers.setLocation(URI.create(frontendUrl.concat(SLASH).concat(LOGIN).concat(QUESTION_MARK).concat("error=invalid-profile-type")));
+            return CompletableFuture.completedFuture(new ResponseEntity<>(responseData, headers, HttpStatus.BAD_REQUEST));
+        }
         HttpHeaders headers = Utils.createHeaders(request);
         ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, "native-login", requestBody);
         return authService.performNativeLogin(apiRequestResolver, profileType).thenApplyAsync(apiResponseResolver -> {

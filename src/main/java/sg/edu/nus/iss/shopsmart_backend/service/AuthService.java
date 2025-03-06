@@ -17,6 +17,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import sg.edu.nus.iss.shopsmart_backend.model.*;
 import sg.edu.nus.iss.shopsmart_backend.utils.Constants;
 import sg.edu.nus.iss.shopsmart_backend.utils.RedisManager;
+import sg.edu.nus.iss.shopsmart_backend.utils.Utils;
 
 import java.net.URI;
 import java.util.HashMap;
@@ -68,6 +69,9 @@ public class AuthService extends Constants {
 
     @Value("${gcip.login_native_url}")
     private String gcipLoginNativeUrl;
+
+    @Value("${gcip.delete_account_url}")
+    private String gcipDeleteAccountUrl;
 
     @Value("${frontend_url}")
     private String frontendUrl;
@@ -235,7 +239,7 @@ public class AuthService extends Constants {
         ResponseEntity<JsonNode> response = restTemplate.exchange(
                 url, HttpMethod.POST, request, JsonNode.class);
 
-        log.info("Refresh id token response: {} with status {}", response.getBody(), response.getStatusCode());
+        log.info("{} Refresh id token response: {} with status {}", loggerString, response.getBody(), response.getStatusCode());
         if(!response.hasBody() || response.getBody()==null){
             log.error("{} Error occurred while refreshing id_token through Gcip, response body is null", loggerString);
             return null;
@@ -251,6 +255,35 @@ public class AuthService extends Constants {
         }
 
         return mapper.convertValue(response.getBody(), GcipRefreshTokenResponse.class);
+    }
+
+    public Boolean deleteAccountThroughGcip(String idToken, String sessionId, String loggerString){
+        log.info("{} Deleting account through GCIP using idToken: {}", loggerString, idToken);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        Map<String, String> body = new HashMap<>();
+        body.put("idToken", idToken);
+
+        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(body, headers);
+
+        String url = gcipDeleteAccountUrl.concat(gcipApiKey);
+        ResponseEntity<JsonNode> response = restTemplate.exchange(
+                url, HttpMethod.POST, requestEntity, JsonNode.class);
+        log.info("{} Delete account in GCIP response: {} with status {}", loggerString, response.getBody(), response.getStatusCode());
+        if(!response.hasBody() || response.getBody()==null){
+            log.error("{} Error occurred while deleting account through Gcip, response body is null", loggerString);
+            return false;
+        }
+        if(response.getStatusCode() == HttpStatus.BAD_REQUEST || (response.getBody()!=null && response.getBody().hasNonNull(ERROR))){
+            log.info("{} Unable to delete account due to invalid id_token, statusCode : {}", loggerString, response.getStatusCode());
+            //will only store raw responses for error cases.
+            updateSessionInRedis(sessionId, RAW_DELETE_ACC_THROUGH_GCIP_RESP,
+                    response.getBody().toString(), loggerString);
+            return false;
+        }
+        log.info("{} Account deleted successfully through GCIP", loggerString);
+        return true;
     }
 
     public GcipNativeLoginTokenResp nativeAuthForUserThroughGcip(String email, String password, String sessionId, String profileType,
@@ -300,7 +333,7 @@ public class AuthService extends Constants {
             log.error("{} Invalid state value received in callback for google login", apiRequestResolver.getLoggerString());
 //            return CompletableFuture.completedFuture(new ResponseEntity<>(headers, HttpStatus.FOUND));
             return CompletableFuture.completedFuture(URI.create(frontendUrl.concat(SLASH)
-                    .concat("login").concat(QUESTION_MARK).concat("error=invalidstate")));
+                    .concat(LOGIN).concat(QUESTION_MARK).concat("error=invalidstate")));
         }
 
         if(profileType == null || profileType.isEmpty() ||
@@ -309,7 +342,7 @@ public class AuthService extends Constants {
             log.error("{} Invalid profile type received in callback for google login", apiRequestResolver.getLoggerString());
 //            return CompletableFuture.completedFuture(new ResponseEntity<>(headers, HttpStatus.FOUND));
             return CompletableFuture.completedFuture(URI.create(frontendUrl.concat(SLASH)
-                    .concat("login").concat(QUESTION_MARK).concat("error=invalidprofiletype")));
+                    .concat(LOGIN).concat(QUESTION_MARK).concat("error=invalidprofiletype")));
         }
 
         OAuth2TokenExchangeResponse accessTokenResp = exchangeCodeForTokens(apiRequestResolver, code, profileType);
@@ -317,12 +350,12 @@ public class AuthService extends Constants {
             log.error("{} Exception occurred in fetching access token from google", apiRequestResolver.getLoggerString());
 //            return CompletableFuture.completedFuture(new ResponseEntity<>(headers, HttpStatus.FOUND));
             return CompletableFuture.completedFuture(URI.create(frontendUrl.concat(SLASH)
-                    .concat("login").concat(QUESTION_MARK).concat("error=loginfailed")));
+                    .concat(LOGIN).concat(QUESTION_MARK).concat("error=loginfailed")));
         }
         if(accessTokenResp.isInvalidGrant()){
             log.error("{} Invalid grant received in token exchange response", apiRequestResolver.getLoggerString());
             return CompletableFuture.completedFuture(URI.create(frontendUrl.concat(SLASH)
-                    .concat("login").concat(QUESTION_MARK).concat("error=loginagain")));
+                    .concat(LOGIN).concat(QUESTION_MARK).concat("error=loginagain")));
         }
         log.debug("Access token received with access token value {}", accessTokenResp.getAccessToken());
         log.debug("Access token received with id token {}", accessTokenResp.getIdToken());
@@ -332,12 +365,12 @@ public class AuthService extends Constants {
             log.error("{} Error in fetching user profile from GCIP", apiRequestResolver.getLoggerString());
 //            return CompletableFuture.completedFuture(new ResponseEntity<>(headers, HttpStatus.FOUND));
             return CompletableFuture.completedFuture(URI.create(frontendUrl.concat(SLASH)
-                    .concat("login").concat(QUESTION_MARK).concat("error=userauthfailed")));
+                    .concat(LOGIN).concat(QUESTION_MARK).concat("error=userauthfailed")));
         }
         if(gcipSignInWithIdpTokenResponse.isInvalid()){
             log.error("{} Invalid input response received during signInWithIdp response", apiRequestResolver.getLoggerString());
             return CompletableFuture.completedFuture(URI.create(frontendUrl.concat(SLASH)
-                    .concat("login").concat(QUESTION_MARK).concat("error=tryloginagain")));
+                    .concat(LOGIN).concat(QUESTION_MARK).concat("error=tryloginagain")));
         }
         log.debug("Email received from GCIP: {}", gcipSignInWithIdpTokenResponse.getEmail());
         log.debug("Id token received from GCIP: {}", gcipSignInWithIdpTokenResponse.getIdToken());
@@ -347,7 +380,7 @@ public class AuthService extends Constants {
             if(profileUserIdResp == null || profileUserIdResp.isEmpty()){
                 log.error("{} Error in fetching user profile from profile service", apiRequestResolver.getLoggerString());
 //                return new ResponseEntity<>(headers, HttpStatus.FOUND);
-                return URI.create(frontendUrl.concat(SLASH).concat("login").concat(QUESTION_MARK).concat("error=unabletologin"));
+                return URI.create(frontendUrl.concat(SLASH).concat(LOGIN).concat(QUESTION_MARK).concat("error=unabletologin"));
             }
             log.info("User profile id fetched from profile service: {}", profileUserIdResp);
 
@@ -386,7 +419,9 @@ public class AuthService extends Constants {
         }
         String email = requestBody.get(EMAIL).asText();
         String password = requestBody.get(PASSWORD).asText();
-        GcipNativeLoginTokenResp gcipNativeSignUpTokenResp = nativeAuthForUserThroughGcip(email, password,
+        String gcipEmailWithProfileType = Utils.insertProfileTypeIntoEmail(email, profileType);
+        log.debug("updated email with profileType for signUp: {}", gcipEmailWithProfileType);
+        GcipNativeLoginTokenResp gcipNativeSignUpTokenResp = nativeAuthForUserThroughGcip(gcipEmailWithProfileType, password,
                 apiRequestResolver.getLoggerString(), profileType, true, apiRequestResolver.getLoggerString());
         if (gcipNativeSignUpTokenResp == null){
             log.error("{} Error occurred while trying to register user creds with GCIP for signUp", apiRequestResolver.getLoggerString());
@@ -415,11 +450,22 @@ public class AuthService extends Constants {
                 responseData.put(MESSAGE, "Unable to register user profile or user already exists");
                 apiResponseResolver.setStatusCode(HttpStatus.BAD_REQUEST);
                 apiResponseResolver.setRespData(responseData);
+                log.info("{} Deleting account through GCIP due to profile creation failure", apiRequestResolver.getLoggerString());
+                deleteAccountThroughGcip(gcipNativeSignUpTokenResp.getIdToken(), apiRequestResolver.getSessionId(), apiRequestResolver.getLoggerString());
+//                if(!status){
+//                    log.error("{} Error in deleting account through GCIP due to possibly expiry of id_token", apiRequestResolver.getLoggerString());
+//                    GcipRefreshTokenResponse gcipRefreshTokenResponse = refreshIdTokenThroughGcip(gcipNativeSignUpTokenResp.getRefreshToken(), apiRequestResolver.getSessionId(), apiRequestResolver.getLoggerString());
+//                    if(gcipRefreshTokenResponse!=null && !gcipRefreshTokenResponse.isInvalidRefreshToken()){
+//                        log.info("{} id_token refreshed successfully and hence trying delete account again", apiRequestResolver.getLoggerString());
+//                        deleteAccountThroughGcip(gcipRefreshTokenResponse.getIdToken(), apiRequestResolver.getSessionId(), apiRequestResolver.getLoggerString());
+//                    }
+//                }
                 return CompletableFuture.completedFuture(apiResponseResolver);
             }
             log.info("{} User profile created successfully for native sign up flow", apiRequestResolver.getLoggerString());
             //TODO :: incorporate OTP validation part here as well.
-            return profileService.fetchUserIdForEmail(apiRequestResolver, gcipNativeSignUpTokenResp.getEmail(), profileType).thenApplyAsync(profileUserIdResp -> {
+            //cant use gcipNativeSignUpTokenResp.getEmail() as it has profileType appended to it. So need to use original email.
+            return profileService.fetchUserIdForEmail(apiRequestResolver, email, profileType).thenApplyAsync(profileUserIdResp -> {
                 if(profileUserIdResp == null || profileUserIdResp.isEmpty()){
                     log.error("{} Error in fetching user profile from profile service post profile creation", apiRequestResolver.getLoggerString());
                     responseData.put(STATUS, FAILURE);
@@ -434,8 +480,8 @@ public class AuthService extends Constants {
                         gcipNativeSignUpTokenResp.getIdToken(), apiRequestResolver.getLoggerString());
                 updateSessionInRedis(apiRequestResolver.getSessionId(), GCIP_REFRESH_TOKEN,
                         gcipNativeSignUpTokenResp.getRefreshToken(), apiRequestResolver.getLoggerString());
-                updateSessionInRedis(apiRequestResolver.getSessionId(), EMAIL,
-                        gcipNativeSignUpTokenResp.getEmail(), apiRequestResolver.getLoggerString());
+                //cant use gcipNativeSignUpTokenResp.getEmail() as it has profileType appended to it. So need to use original email.
+                updateSessionInRedis(apiRequestResolver.getSessionId(), EMAIL, email, apiRequestResolver.getLoggerString());
                 updateSessionInRedis(apiRequestResolver.getSessionId(), LOGIN_TYPE, NATIVE, apiRequestResolver.getLoggerString());
 
                 apiRequestResolver.setUserId(profileUserIdResp);
@@ -462,7 +508,9 @@ public class AuthService extends Constants {
         }
         String email = requestBody.get(EMAIL).asText();
         String password = requestBody.get(PASSWORD).asText();
-        GcipNativeLoginTokenResp gcipNativeLoginTokenResp = nativeAuthForUserThroughGcip(email, password,
+        String gcipEmailWithProfileType = Utils.insertProfileTypeIntoEmail(email, profileType);
+        log.debug("updated email with profileType for login: {}", gcipEmailWithProfileType);
+        GcipNativeLoginTokenResp gcipNativeLoginTokenResp = nativeAuthForUserThroughGcip(gcipEmailWithProfileType, password,
                 apiRequestResolver.getLoggerString(), profileType, false, apiRequestResolver.getLoggerString());
         if (gcipNativeLoginTokenResp == null){
             log.error("{} Error occurred while trying to validate user creds with GCIP", apiRequestResolver.getLoggerString());
@@ -484,7 +532,8 @@ public class AuthService extends Constants {
         log.debug("Id token received from GCIP for native login resp: {}", gcipNativeLoginTokenResp.getIdToken());
         log.debug("Refresh token received from GCIP for native login resp: {}", gcipNativeLoginTokenResp.getRefreshToken());
 
-        return profileService.fetchUserIdForEmail(apiRequestResolver, gcipNativeLoginTokenResp.getEmail(), profileType).thenApplyAsync(profileUserIdResp -> {
+        //cant use gcipNativeSignUpTokenResp.getEmail() as it has profileType appended to it. So need to use original email.
+        return profileService.fetchUserIdForEmail(apiRequestResolver, email, profileType).thenApplyAsync(profileUserIdResp -> {
             if(profileUserIdResp == null || profileUserIdResp.isEmpty()){
                 log.error("{} Error in fetching user profile from profile service for native login flow", apiRequestResolver.getLoggerString());
                 responseData.put(STATUS, FAILURE);
@@ -500,8 +549,8 @@ public class AuthService extends Constants {
                     gcipNativeLoginTokenResp.getIdToken(), apiRequestResolver.getLoggerString());
             updateSessionInRedis(apiRequestResolver.getSessionId(), GCIP_REFRESH_TOKEN,
                     gcipNativeLoginTokenResp.getRefreshToken(), apiRequestResolver.getLoggerString());
-            updateSessionInRedis(apiRequestResolver.getSessionId(), EMAIL,
-                    gcipNativeLoginTokenResp.getEmail(), apiRequestResolver.getLoggerString());
+            //cant use gcipNativeSignUpTokenResp.getEmail() as it has profileType appended to it. So need to use original email.
+            updateSessionInRedis(apiRequestResolver.getSessionId(), EMAIL, email, apiRequestResolver.getLoggerString());
             updateSessionInRedis(apiRequestResolver.getSessionId(), LOGIN_TYPE, NATIVE, apiRequestResolver.getLoggerString());
 
             apiRequestResolver.setUserId(profileUserIdResp);

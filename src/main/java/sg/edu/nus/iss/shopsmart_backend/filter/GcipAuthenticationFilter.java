@@ -18,6 +18,7 @@ import sg.edu.nus.iss.shopsmart_backend.service.AuthService;
 import org.springframework.security.core.context.SecurityContextHolder;
 import sg.edu.nus.iss.shopsmart_backend.service.CommonService;
 import sg.edu.nus.iss.shopsmart_backend.utils.RedisManager;
+import sg.edu.nus.iss.shopsmart_backend.utils.Utils;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -63,7 +64,7 @@ public class GcipAuthenticationFilter extends OncePerRequestFilter implements Fi
                     if(gcipAccLookupResponse.isIdTokenRefreshNeeded()){
                         String updatedIdToken = refreshIdTokenAndReturnNewOne(sessionId, apiRequestResolver.getLoggerString());
                         if(updatedIdToken==null || updatedIdToken.isEmpty()){
-                            log.info("GCIP verification failed due to unable to refresh id_token for sessionId: {}, so unable to verify user", sessionId);
+                            log.info("{} GCIP verification failed for session due to unable to refresh id_token, so unable to verify user", apiRequestResolver.getLoggerString());
                             apiRequestResolver.setUserId(null);
                             apiRequestResolver.setLoggedIn(false);
                             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
@@ -87,9 +88,9 @@ public class GcipAuthenticationFilter extends OncePerRequestFilter implements Fi
                         }
                     }
 
-                    String userId = fetchValidatedUser(gcipAccLookupResponse, sessionId);
+                    String userId = fetchValidatedUser(gcipAccLookupResponse, sessionId, apiRequestResolver.getLoggerString());
                     if (userId != null && !userId.isEmpty()) {
-                        log.info("GCIP verification successful for sessionId: {} with userId: {}", sessionId, userId);
+                        log.info("{} GCIP verification successful for session with userId: {}", apiRequestResolver.getLoggerString(), userId);
                         apiRequestResolver.setUserId(userId);
                         apiRequestResolver.setLoggedIn(true);
                         commonService.updateUserIdInRedisInSessionData(apiRequestResolver);
@@ -99,7 +100,7 @@ public class GcipAuthenticationFilter extends OncePerRequestFilter implements Fi
                         auth.setDetails(apiRequestResolver);
                         SecurityContextHolder.getContext().setAuthentication(auth);
                     } else {
-                        log.info("GCIP verification failed for sessionId: {} unable to verify user", sessionId);
+                        log.info("{} GCIP verification failed for session unable to verify user", apiRequestResolver.getLoggerString());
                         apiRequestResolver.setUserId(null);
                         apiRequestResolver.setLoggedIn(false);
                         //based on API config in redis then if protected then should return error resp
@@ -122,7 +123,7 @@ public class GcipAuthenticationFilter extends OncePerRequestFilter implements Fi
                     SecurityContextHolder.getContext().setAuthentication(auth);
                 }
             } else {
-                log.info("GCIP ID Token is null or empty for sessionId: {} unable to verify user", sessionId);
+                log.info("{} GCIP ID Token is null or empty for session, unable to verify user", apiRequestResolver.getLoggerString());
                 apiRequestResolver.setUserId(null);
                 apiRequestResolver.setLoggedIn(false);
                 //based on API config in redis then if protected then should return error resp
@@ -138,37 +139,54 @@ public class GcipAuthenticationFilter extends OncePerRequestFilter implements Fi
         filterChain.doFilter(request, response);
     }
 
-    private String extractSessionIdFromCookies(Cookie[] cookies) {
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if (SESSION_ID.equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        return null;
-    }
+//    private String extractSessionIdFromCookies(Cookie[] cookies) {
+//        if (cookies != null) {
+//            for (Cookie cookie : cookies) {
+//                if (SESSION_ID.equals(cookie.getName())) {
+//                    return cookie.getValue();
+//                }
+//            }
+//        }
+//        return null;
+//    }
 
-    private String fetchValidatedUser(GcipAccLookupResponse gcipAccLookupResp, String sessionId) {
+    private String fetchValidatedUser(GcipAccLookupResponse gcipAccLookupResp, String sessionId, String loggerString) {
         String emailFromGcip = gcipAccLookupResp.getUsers().getFirst().getProviderUserInfo().getFirst().getEmail();
         String emailInSession = redisManager.getHashValue(REDIS_SESSION_PREFIX.concat(sessionId), EMAIL);
+        String loginTypeInSession = redisManager.getHashValue(REDIS_SESSION_PREFIX.concat(sessionId), LOGIN_TYPE);
+        String profileType = redisManager.getHashValue(REDIS_SESSION_PREFIX.concat(sessionId), PROFILE_TYPE);
+        log.debug("{} fetched loginType: {} and profileType: {} from session", loggerString, loginTypeInSession, profileType);
         if(emailFromGcip==null || emailFromGcip.isEmpty()){
-            log.info("GCIP response does not contain email for sessionId: {}", sessionId);
+            log.info("{} GCIP response does not contain email for session", loggerString);
             return null;
         }
         if(emailInSession==null || emailInSession.isEmpty()){
-            log.info("Session {} does not have logged in user, no need to identify user", sessionId);
+            log.info("{} Session does not have logged in user, no need to identify user", loggerString);
             return "";
         }
         if(emailInSession.equals(emailFromGcip)){
-            log.info("GCIP response email matches with session email for sessionId: {}, hence need to fetch userId for the same.", sessionId);
+            log.info("{} GCIP response email matches with session email, hence need to fetch userId for the same.", loggerString);
             //for now we are not fetching userId from profile, we will directly take it from session itself.
             //TODO :: handle userId fetch from profile service instead of directly from session.
             String userIdFromSession = redisManager.getHashValue(REDIS_SESSION_PREFIX.concat(sessionId), USER_ID);
-            log.info("As GCIP response email matches with session email for sessionId: {}, hence returning userId: {}", sessionId, userIdFromSession);
+            log.info("{} As GCIP response email matches with session email, hence returning userId: {}", loggerString, userIdFromSession);
             return userIdFromSession;
+        } else if(loginTypeInSession.equals(NATIVE)){
+            log.info("{} as login type is NATIVE, hence need to check if profileType based email matches gcip email or not.", loggerString);
+            String profileTypeBasedEmailForNativeLogin = Utils.insertProfileTypeIntoEmail(emailInSession, profileType);
+            log.debug("{} profileTypeBasedEmailForNativeLogin: {}", loggerString, profileTypeBasedEmailForNativeLogin);
+            if(profileTypeBasedEmailForNativeLogin.equals(emailFromGcip)){
+                //for now we are not fetching userId from profile, we will directly take it from session itself.
+                //TODO :: handle userId fetch from profile service instead of directly from session.
+                String userIdFromSession = redisManager.getHashValue(REDIS_SESSION_PREFIX.concat(sessionId), USER_ID);
+                log.info("{} As login type is NATIVE and email from GCIP matches with profileTypeBasedEmailForNativeLogin, hence returning userId: {}", loggerString, userIdFromSession);
+                return userIdFromSession;
+            }else{
+                log.info("{} GCIP response email does not match with profileType based session email for native login either, user not validated.", loggerString);
+                return "";
+            }
         } else{
-            log.info("GCIP response email does not match with session email for sessionId: {}, user not validated.", sessionId);
+            log.info("{} GCIP response email does not match with session email for session, user not validated.", loggerString);
             return "";
         }
     }

@@ -55,6 +55,11 @@ public class Utils extends Constants{
         }
     }
 
+    public static String insertProfileTypeIntoEmail(String email, String profileType){
+        String[] emailParts = email.split("@");
+        return emailParts[0] + "_" + profileType + "@" + emailParts[1];
+    }
+
     public void setSessionAndCookieDataForSession(ApiRequestResolver apiRequestResolver, HttpServletRequest request,
                                                    HttpServletResponse response) {
         log.info("Setting session id {} in cookies and session attributes", apiRequestResolver.getSessionId());
