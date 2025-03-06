@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.web.bind.annotation.*;
 import sg.edu.nus.iss.shopsmart_backend.model.ApiRequestResolver;
 import sg.edu.nus.iss.shopsmart_backend.model.GcipNativeLoginTokenResp;
@@ -133,7 +134,7 @@ public class AuthController extends Constants {
     }
 
     @GetMapping("/validate-token")
-    public ResponseEntity<JsonNode> validateToken(@AuthenticationPrincipal Authentication authentication, HttpServletRequest request, HttpServletResponse response){
+    public ResponseEntity<JsonNode> validateToken(@CurrentSecurityContext(expression = "authentication") Authentication authentication, HttpServletRequest request, HttpServletResponse response){
         log.info("Starting flow for validating session token");
         HttpHeaders headers = Utils.createHeaders(request);
         ApiRequestResolver apiRequestResolver = getApiRequestResolver(authentication, request, "validate-token");
@@ -153,7 +154,7 @@ public class AuthController extends Constants {
     }
 
     @GetMapping("/logout")
-    public ResponseEntity<Void> logout(@AuthenticationPrincipal Authentication authentication, HttpServletRequest request, HttpServletResponse response){
+    public ResponseEntity<Void> logout(@CurrentSecurityContext(expression = "authentication") Authentication authentication, HttpServletRequest request, HttpServletResponse response){
         log.info("Starting flow for logging out user");
         HttpHeaders headers = Utils.createHeaders(request);
         ApiRequestResolver apiRequestResolver = getApiRequestResolver(authentication, request, "logout");
