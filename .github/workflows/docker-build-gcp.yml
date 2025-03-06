@@ -3,7 +3,7 @@ name: Build and Push to GCP Artifact Registry
 on:
   push:
     branches:
-      - feature/gcp_image
+      - feature/gmail_login
 #      - Main
 #  pull_request:
 #    branches:
