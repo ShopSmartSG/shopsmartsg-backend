@@ -16,6 +16,8 @@ public class CustomerResponseErrorHandler extends DefaultResponseErrorHandler {
             HttpStatus.FORBIDDEN,
             HttpStatus.INTERNAL_SERVER_ERROR,
             HttpStatus.SERVICE_UNAVAILABLE,
+            HttpStatus.UNPROCESSABLE_ENTITY,
+            HttpStatus.LOCKED,
             HttpStatus.CONFLICT
     );
 
