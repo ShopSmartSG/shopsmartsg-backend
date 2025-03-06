@@ -102,7 +102,7 @@ public class AuthController extends Constants {
         });
     }
 
-    @GetMapping("/native/signup/{profile-type}")
+    @PostMapping("/native/signup/{profile-type}")
     public CompletableFuture<ResponseEntity<JsonNode>> nativeSignUp(@PathVariable(name = "profile-type") String profileType, @RequestBody JsonNode requestBody,
                              HttpServletRequest request, HttpServletResponse response){
         log.info("Starting flow for native sign up for profile type: {}", profileType);
@@ -131,7 +131,7 @@ public class AuthController extends Constants {
         });
     }
 
-    @GetMapping("/native/login/{profile-type}")
+    @PostMapping("/native/login/{profile-type}")
     public CompletableFuture<ResponseEntity<JsonNode>> nativeLogin(@PathVariable(name = "profile-type") String profileType, @RequestBody JsonNode requestBody,
                             HttpServletRequest request, HttpServletResponse response){
         log.info("Starting flow for native login for profile type: {}", profileType);
