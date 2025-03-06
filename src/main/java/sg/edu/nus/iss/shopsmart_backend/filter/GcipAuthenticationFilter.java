@@ -46,7 +46,8 @@ public class GcipAuthenticationFilter extends OncePerRequestFilter implements Fi
         String path = request.getRequestURI();
         // Skip filter for specific endpoints
         if (path.startsWith("/auth/google/") || path.startsWith("/auth/native/")
-                || path.startsWith("/profile/") || path.startsWith("/redis-api/")) {
+                || path.startsWith("/profile/") || path.startsWith("/redis-api/")
+                || path.matches("/") || path.matches("/home")) {
             filterChain.doFilter(request, response);
             return;
         }

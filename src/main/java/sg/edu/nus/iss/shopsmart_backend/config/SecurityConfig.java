@@ -19,7 +19,7 @@ public class SecurityConfig {
                                                    CommonService commonService, RedisManager redisManager) throws Exception{
         http
                 .authorizeHttpRequests(request -> {
-                    request.requestMatchers("/auth/google/**", "/auth/native/**", "/profile/**", "/redis-api/**").permitAll();
+                    request.requestMatchers("/auth/google/**", "/auth/native/**", "/profile/**", "/redis-api/**", "/", "/home").permitAll();
                     request.anyRequest().authenticated();
                 })
                 .csrf(AbstractHttpConfigurer::disable)
