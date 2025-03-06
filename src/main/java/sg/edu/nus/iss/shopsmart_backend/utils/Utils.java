@@ -60,7 +60,7 @@ public class Utils extends Constants{
         log.info("Setting session id {} in cookies and session attributes", apiRequestResolver.getSessionId());
         String sessionId = apiRequestResolver.getSessionId();
 //        String domain = request.getServerName();
-        String domain = ".shopsmartsg.com";
+        String domain = "shopsmartsg.com";
 
         Cookie sessionCookie = new Cookie(SESSION_ID, sessionId);
         sessionCookie.setPath("/");
