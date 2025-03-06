@@ -61,7 +61,7 @@ public class AuthController extends Constants {
         // Generate google login url
         String googleLoginUrl = authService.generateAuthorizationUrl(apiRequestResolver, profileType);
         setRequiredCookies(apiRequestResolver, request, response);
-        HttpHeaders headers = Utils.createHeaders();
+        HttpHeaders headers = Utils.createHeaders(request);
         headers.setLocation(URI.create(googleLoginUrl));
         return new ResponseEntity<>(headers, HttpStatus.FOUND);
     }
@@ -84,7 +84,7 @@ public class AuthController extends Constants {
                                                   HttpServletRequest request, HttpServletResponse response){
         log.info("Starting flow for google callback with code : {} and state: {} for profileType: {}", code, state, profileType);
         ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, "google-login", null);
-        HttpHeaders headers = Utils.createHeaders();
+        HttpHeaders headers = Utils.createHeaders(request);
         setRequiredCookies(apiRequestResolver, request, response);
         return authService.performGoogleCallbackHandling(apiRequestResolver, code, state, profileType).thenApplyAsync(callbackHandlingRespURI -> {
             log.info("{} Received response from google callback handling: {}", apiRequestResolver.getLoggerString(), callbackHandlingRespURI);
@@ -97,7 +97,7 @@ public class AuthController extends Constants {
     public CompletableFuture<ResponseEntity<JsonNode>> nativeSignUp(@PathVariable(name = "profile-type") String profileType, @RequestBody JsonNode requestBody,
                              HttpServletRequest request, HttpServletResponse response){
         log.info("Starting flow for native sign up for profile type: {}", profileType);
-        HttpHeaders headers = Utils.createHeaders();
+        HttpHeaders headers = Utils.createHeaders(request);
         ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, "native-signup", requestBody);
         return authService.performNativeSignUp(apiRequestResolver, profileType).thenApplyAsync(apiResponseResolver -> {
             log.info("{} Received response from native sign up flow: {}", apiRequestResolver.getLoggerString(), apiResponseResolver);
@@ -117,7 +117,7 @@ public class AuthController extends Constants {
     public CompletableFuture<ResponseEntity<JsonNode>> nativeLogin(@PathVariable(name = "profile-type") String profileType, @RequestBody JsonNode requestBody,
                             HttpServletRequest request, HttpServletResponse response){
         log.info("Starting flow for native login for profile type: {}", profileType);
-        HttpHeaders headers = Utils.createHeaders();
+        HttpHeaders headers = Utils.createHeaders(request);
         ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, "native-login", requestBody);
         return authService.performNativeLogin(apiRequestResolver, profileType).thenApplyAsync(apiResponseResolver -> {
             log.info("{} Received response from native login flow: {}", apiRequestResolver.getLoggerString(), apiResponseResolver);
@@ -135,7 +135,7 @@ public class AuthController extends Constants {
     @GetMapping("/validate-token")
     public ResponseEntity<JsonNode> validateToken(@AuthenticationPrincipal Authentication authentication, HttpServletRequest request, HttpServletResponse response){
         log.info("Starting flow for validating session token");
-        HttpHeaders headers = Utils.createHeaders();
+        HttpHeaders headers = Utils.createHeaders(request);
         ApiRequestResolver apiRequestResolver = getApiRequestResolver(authentication, request, "validate-token");
         if(!apiRequestResolver.isLoggedIn() || apiRequestResolver.getUserId()==null || apiRequestResolver.getUserId().isEmpty()){
             log.error("{} User not logged in or user id not found in session", apiRequestResolver.getLoggerString());
@@ -155,7 +155,7 @@ public class AuthController extends Constants {
     @GetMapping("/logout")
     public ResponseEntity<Void> logout(@AuthenticationPrincipal Authentication authentication, HttpServletRequest request, HttpServletResponse response){
         log.info("Starting flow for logging out user");
-        HttpHeaders headers = Utils.createHeaders();
+        HttpHeaders headers = Utils.createHeaders(request);
         ApiRequestResolver apiRequestResolver = getApiRequestResolver(authentication, request, "logout");
         if(!apiRequestResolver.isLoggedIn() || apiRequestResolver.getUserId()==null || apiRequestResolver.getUserId().isEmpty()){
             log.error("{} User not logged in or user id not found in session in order to do user logout", apiRequestResolver.getLoggerString());

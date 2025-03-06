@@ -116,9 +116,11 @@ public class Utils extends Constants{
         }
     }
 
-    public static HttpHeaders createHeaders() {
+    public static HttpHeaders createHeaders(HttpServletRequest request) {
+        String origin = request.getHeader("Origin");
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Access-Control-Allow-Origin", "*");
+        headers.add("Access-Control-Allow-Origin", origin);
+        headers.set("Vary", "Origin");
         headers.add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         headers.add("Access-Control-Allow-Headers", "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range");
         headers.add("Access-Control-Expose-Headers", "Content-Length,Content-Range");

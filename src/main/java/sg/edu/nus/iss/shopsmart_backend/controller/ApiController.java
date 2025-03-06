@@ -76,7 +76,7 @@ public class ApiController extends Constants {
     public CompletableFuture<ResponseEntity<JsonNode>> handleGetRequest(@CurrentSecurityContext(expression = "authentication") Authentication authentication,
                                                                         @PathVariable(name = "api-key") String apiKey,
                                                                         HttpServletRequest request, HttpServletResponse response) {
-        HttpHeaders headers = Utils.createHeaders();
+        HttpHeaders headers = Utils.createHeaders(request);
         log.info("Handling GET request for API: {}", apiKey);
 //        ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, apiKey, null);
         ApiRequestResolver apiRequestResolver = getApiRequestResolver(authentication, request, apiKey, null);
@@ -98,7 +98,7 @@ public class ApiController extends Constants {
                                                                          @PathVariable(name = "api-key") String apiKey, @RequestBody JsonNode requestBody,
                                                                          HttpServletRequest request, HttpServletResponse response) {
         log.info("Handling POST request for API: {}", apiKey);
-        HttpHeaders headers = Utils.createHeaders();
+        HttpHeaders headers = Utils.createHeaders(request);
 //        ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, apiKey, requestBody);
         ApiRequestResolver apiRequestResolver = getApiRequestResolver(authentication, request, apiKey, requestBody);
         //perform jwt validation check here
@@ -119,7 +119,7 @@ public class ApiController extends Constants {
                                                                         @PathVariable(name = "api-key") String apiKey, @RequestBody JsonNode requestBody,
                                                                         HttpServletRequest request, HttpServletResponse response) {
         log.info("Handling PUT request for API: {}", apiKey);
-        HttpHeaders headers = Utils.createHeaders();
+        HttpHeaders headers = Utils.createHeaders(request);
 //        ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, apiKey, requestBody);
         ApiRequestResolver apiRequestResolver = getApiRequestResolver(authentication, request, apiKey, requestBody);
         //perform jwt validation check here
@@ -140,7 +140,7 @@ public class ApiController extends Constants {
                                                                           @PathVariable(name = "api-key") String apiKey, @RequestBody JsonNode requestBody,
                                                                           HttpServletRequest request, HttpServletResponse response) {
         log.info("Handling PATCH request for API: {}", apiKey);
-        HttpHeaders headers = Utils.createHeaders();
+        HttpHeaders headers = Utils.createHeaders(request);
 //        ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, apiKey, requestBody);
         ApiRequestResolver apiRequestResolver = getApiRequestResolver(authentication, request, apiKey, requestBody);
         //perform jwt validation check here
@@ -161,7 +161,7 @@ public class ApiController extends Constants {
                                                                            @PathVariable(name = "api-key") String apiKey, HttpServletRequest request,
                                                                            HttpServletResponse response) {
         log.info("Handling DELETE request for API: {}", apiKey);
-        HttpHeaders headers = Utils.createHeaders();
+        HttpHeaders headers = Utils.createHeaders(request);
 //        ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, apiKey, null);
         ApiRequestResolver apiRequestResolver = getApiRequestResolver(authentication, request, apiKey, null);
         //perform jwt validation check here
