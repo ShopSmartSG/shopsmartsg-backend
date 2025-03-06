@@ -483,6 +483,7 @@ public class AuthService extends Constants {
                 //cant use gcipNativeSignUpTokenResp.getEmail() as it has profileType appended to it. So need to use original email.
                 updateSessionInRedis(apiRequestResolver.getSessionId(), EMAIL, email, apiRequestResolver.getLoggerString());
                 updateSessionInRedis(apiRequestResolver.getSessionId(), LOGIN_TYPE, NATIVE, apiRequestResolver.getLoggerString());
+                updateSessionInRedis(apiRequestResolver.getSessionId(), PROFILE_TYPE, profileType, apiRequestResolver.getLoggerString());
 
                 apiRequestResolver.setUserId(profileUserIdResp);
                 apiRequestResolver.setLoggedIn(true);
@@ -552,6 +553,7 @@ public class AuthService extends Constants {
             //cant use gcipNativeSignUpTokenResp.getEmail() as it has profileType appended to it. So need to use original email.
             updateSessionInRedis(apiRequestResolver.getSessionId(), EMAIL, email, apiRequestResolver.getLoggerString());
             updateSessionInRedis(apiRequestResolver.getSessionId(), LOGIN_TYPE, NATIVE, apiRequestResolver.getLoggerString());
+            updateSessionInRedis(apiRequestResolver.getSessionId(), PROFILE_TYPE, profileType, apiRequestResolver.getLoggerString());
 
             apiRequestResolver.setUserId(profileUserIdResp);
             apiRequestResolver.setLoggedIn(true);
