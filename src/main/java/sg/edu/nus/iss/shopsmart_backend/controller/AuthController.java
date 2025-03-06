@@ -62,8 +62,8 @@ public class AuthController extends Constants {
         String googleLoginUrl = authService.generateAuthorizationUrl(apiRequestResolver, profileType);
         setRequiredCookies(apiRequestResolver, request, response);
         HttpHeaders headers = Utils.createHeaders(request);
-        headers.setLocation(URI.create(googleLoginUrl));
-        return new ResponseEntity<>(headers, HttpStatus.FOUND);
+//        headers.setLocation(URI.create(googleLoginUrl));
+        return new ResponseEntity<>(googleLoginUrl,headers, HttpStatus.FOUND);
     }
 
 //    @PostMapping("/google/signup/{profile-type}")
