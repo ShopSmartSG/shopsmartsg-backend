@@ -55,9 +55,9 @@ public class AuthController extends Constants {
     public ResponseEntity<String> googleLoginUrl(@PathVariable(name = "profile-type") String profileType,
                                                  HttpServletRequest request, HttpServletResponse response){
         log.info("Starting flow for google login for profile type: {}", profileType);
+        HttpHeaders headers = Utils.createHeaders(request);
         if(!PROFILE_TYPES_LIST.contains(profileType)){
             log.error("Invalid profile type received for google login: {}", profileType);
-            HttpHeaders headers = Utils.createHeaders(request);
 //            headers.setLocation(URI.create(frontendUrl.concat(QUESTION_MARK).concat("error=invalid-profile-type")));
             return new ResponseEntity<>("Invalid request provided for google login", headers, HttpStatus.BAD_REQUEST); //Bad request
         }
@@ -65,7 +65,6 @@ public class AuthController extends Constants {
         // Generate google login url
         String googleLoginUrl = authService.generateAuthorizationUrl(apiRequestResolver, profileType);
         setRequiredCookies(apiRequestResolver, request, response);
-        HttpHeaders headers = Utils.createHeaders(request);
 //        headers.setLocation(URI.create(googleLoginUrl));
         return new ResponseEntity<>(googleLoginUrl,headers, HttpStatus.FOUND);
     }
@@ -87,21 +86,40 @@ public class AuthController extends Constants {
                                                   @RequestParam String code, @RequestParam String state,
                                                   HttpServletRequest request, HttpServletResponse response){
         log.info("Starting flow for google callback with code : {} and state: {} for profileType: {}", code, state, profileType);
+        HttpHeaders headers = Utils.createHeaders(request);
         if(!PROFILE_TYPES_LIST.contains(profileType)){
             log.error("Invalid profile type received for google callback: {}", profileType);
-            HttpHeaders headers = Utils.createHeaders(request);
             String frontendLoginUrl = frontendUrl.concat(QUESTION_MARK).concat("error=invalid-request");
 //            headers.setLocation(URI.create(frontendUrl.concat(SLASH).concat(LOGIN).concat(QUESTION_MARK).concat("error=invalid-profile-type")));
             headers.setLocation(URI.create(frontendLoginUrl));
             return CompletableFuture.completedFuture(new ResponseEntity<>(headers, HttpStatus.FOUND));
         }
         ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, "google-login", null);
-        HttpHeaders headers = Utils.createHeaders(request);
         setRequiredCookies(apiRequestResolver, request, response);
         return authService.performGoogleCallbackHandling(apiRequestResolver, code, state, profileType).thenApplyAsync(callbackHandlingRespURI -> {
             log.info("{} Received response from google callback handling: {}", apiRequestResolver.getLoggerString(), callbackHandlingRespURI);
             headers.setLocation(callbackHandlingRespURI);
             return new ResponseEntity<>(headers, HttpStatus.FOUND);
+        });
+    }
+
+    @GetMapping("/native/generate-otp/{profile-type}/{email}")
+    public CompletableFuture<ResponseEntity<JsonNode>> generateOtp(@PathVariable(name = "profile-type") String profileType,
+                            @PathVariable(name = "email") String email, HttpServletRequest request, HttpServletResponse response){
+        log.info("Starting flow for generating OTP for email: {} for profileType: {}", email, profileType);
+        ObjectNode responseData = mapper.createObjectNode();
+        HttpHeaders headers = Utils.createHeaders(request);
+        if(!PROFILE_TYPES_LIST.contains(profileType)){
+            log.error("Invalid profile type received for generating OTP: {}", profileType);
+            responseData.put(STATUS, FAILURE);
+            responseData.put(MESSAGE, "Invalid request provided for otp generation");
+            return CompletableFuture.completedFuture(new ResponseEntity<>(responseData, headers, HttpStatus.BAD_REQUEST));
+        }
+        ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, "generate-otp", null);
+        return authService.performNativeOtpGenerate(apiRequestResolver, email, profileType).thenApplyAsync(apiResponseResolver -> {
+            log.info("{} Received response from OTP generation flow: {}", apiRequestResolver.getLoggerString(), apiResponseResolver);
+            setRequiredCookies(apiRequestResolver, request, response);
+            return new ResponseEntity<>(apiResponseResolver.getRespData(), headers, apiResponseResolver.getStatusCode());
         });
     }
 
@@ -112,16 +130,15 @@ public class AuthController extends Constants {
     public CompletableFuture<ResponseEntity<JsonNode>> nativeSignUp(@PathVariable(name = "profile-type") String profileType, @RequestBody JsonNode requestBody,
                              HttpServletRequest request, HttpServletResponse response){
         log.info("Starting flow for native sign up for profile type: {}", profileType);
+        HttpHeaders headers = Utils.createHeaders(request);
         if(!PROFILE_TYPES_LIST.contains(profileType)){
             log.error("Invalid profile type received for native signup: {}", profileType);
             ObjectNode responseData = mapper.createObjectNode();
             responseData.put(STATUS, FAILURE);
             responseData.put(MESSAGE, "Invalid request provided for signup");
-            HttpHeaders headers = Utils.createHeaders(request);
 //            headers.setLocation(URI.create(frontendUrl.concat(QUESTION_MARK).concat("error=invalid-profile-type")));
             return CompletableFuture.completedFuture(new ResponseEntity<>(responseData, headers, HttpStatus.BAD_REQUEST));
         }
-        HttpHeaders headers = Utils.createHeaders(request);
         ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, "native-signup", requestBody);
         return authService.performNativeSignUp(apiRequestResolver, profileType).thenApplyAsync(apiResponseResolver -> {
             log.info("{} Received response from native sign up flow: {}", apiRequestResolver.getLoggerString(), apiResponseResolver);
@@ -145,16 +162,15 @@ public class AuthController extends Constants {
     public CompletableFuture<ResponseEntity<JsonNode>> nativeLogin(@PathVariable(name = "profile-type") String profileType, @RequestBody JsonNode requestBody,
                             HttpServletRequest request, HttpServletResponse response){
         log.info("Starting flow for native login for profile type: {}", profileType);
+        HttpHeaders headers = Utils.createHeaders(request);
         if(!PROFILE_TYPES_LIST.contains(profileType)){
             log.error("Invalid profile type received for native login: {}", profileType);
             ObjectNode responseData = mapper.createObjectNode();
             responseData.put(STATUS, FAILURE);
             responseData.put(MESSAGE, "Invalid request provided for login");
-            HttpHeaders headers = Utils.createHeaders(request);
 //            headers.setLocation(URI.create(frontendUrl.concat(SLASH).concat(LOGIN).concat(QUESTION_MARK).concat("error=invalid-profile-type")));
             return CompletableFuture.completedFuture(new ResponseEntity<>(responseData, headers, HttpStatus.BAD_REQUEST));
         }
-        HttpHeaders headers = Utils.createHeaders(request);
         ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, "native-login", requestBody);
         return authService.performNativeLogin(apiRequestResolver, profileType).thenApplyAsync(apiResponseResolver -> {
             log.info("{} Received response from native login flow: {}", apiRequestResolver.getLoggerString(), apiResponseResolver);
@@ -199,16 +215,15 @@ public class AuthController extends Constants {
                                            @PathVariable(name = "profile-type") String profileType,
                                            HttpServletRequest request, HttpServletResponse response){
         log.info("Starting flow for logging out user with profileType : {}", profileType);
+        HttpHeaders headers = Utils.createHeaders(request);
         if(!PROFILE_TYPES_LIST.contains(profileType)){
             log.error("Invalid profile type received for logout: {}", profileType);
             ObjectNode responseData = mapper.createObjectNode();
             responseData.put(STATUS, FAILURE);
             responseData.put(MESSAGE, "Invalid request");
-            HttpHeaders headers = Utils.createHeaders(request);
 //            headers.setLocation(URI.create(frontendUrl.concat(SLASH).concat(LOGIN).concat(QUESTION_MARK).concat("error=invalid-profile-type")));
             return new ResponseEntity<>(responseData, headers, HttpStatus.BAD_REQUEST);
         }
-        HttpHeaders headers = Utils.createHeaders(request);
         ObjectNode responseData = mapper.createObjectNode();
         ApiRequestResolver apiRequestResolver = getApiRequestResolver(authentication, request, "logout");
         if(!apiRequestResolver.isLoggedIn() || apiRequestResolver.getUserId()==null || apiRequestResolver.getUserId().isEmpty()){
@@ -222,9 +237,10 @@ public class AuthController extends Constants {
         authService.logoutUser(apiRequestResolver);
         setRequiredCookies(apiRequestResolver, request, response);
 //        headers.setLocation(URI.create(frontendUrl));
+        String frontendHomeUrl = authService.getFrontendHomeUrlBasedOnProfileType(profileType);
         responseData.put(STATUS, SUCCESS);
         responseData.put(MESSAGE, "User logged out successfully");
-        responseData.put(REDIRECT_URI, authService.getFrontendHomeUrlBasedOnProfileType(profileType));
+        responseData.put(REDIRECT_URI, frontendHomeUrl);
         return new ResponseEntity<>(responseData, headers, HttpStatus.OK);
     }
 

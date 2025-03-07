@@ -39,7 +39,7 @@ class ValidateOtpHandlerTest extends Constants {
         assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
         assertEquals("Email or otp is empty or not found in request for otp validation",
                 result.getRespData().get(Constants.MESSAGE).asText());
-        verify(profileService, never()).validateOtp(any(), anyString(), anyString());
+        verify(profileService, never()).validateOtp(any(), anyString(), anyString(), anyString());
         verify(nextHandler, never()).handle(any(), anyString());
     }
 
@@ -49,7 +49,7 @@ class ValidateOtpHandlerTest extends Constants {
         request.addParamValue(EMAIL, "test@example.com");
         request.addParamValue(OTP, "123456");
 
-        when(profileService.validateOtp(any(), eq("test@example.com"), eq("123456")))
+        when(profileService.validateOtp(any(), eq("test@example.com"), eq("123456"), eq("admin")))
                 .thenReturn(CompletableFuture.completedFuture(false)); // OTP validation failed
 
         CompletableFuture<ApiResponseResolver> response = handler.handle(request, "admin");
@@ -67,7 +67,7 @@ class ValidateOtpHandlerTest extends Constants {
         request.addParamValue(EMAIL, "test@example.com");
         request.addParamValue(OTP, "123456");
 
-        when(profileService.validateOtp(any(), eq("test@example.com"), eq("123456")))
+        when(profileService.validateOtp(any(), eq("test@example.com"), eq("123456"), eq("admin")))
                 .thenReturn(CompletableFuture.completedFuture(true)); // OTP validation success
 
         ApiResponseResolver nextHandlerResponse = new ApiResponseResolver();
@@ -90,7 +90,7 @@ class ValidateOtpHandlerTest extends Constants {
 
         handler.setNext(null); // No next handler in the chain
 
-        when(profileService.validateOtp(any(), eq("test@example.com"), eq("123456")))
+        when(profileService.validateOtp(any(), eq("test@example.com"), eq("123456"), eq("admin")))
                 .thenReturn(CompletableFuture.completedFuture(true)); // OTP validation success
 
         CompletableFuture<ApiResponseResolver> response = handler.handle(request, "admin");

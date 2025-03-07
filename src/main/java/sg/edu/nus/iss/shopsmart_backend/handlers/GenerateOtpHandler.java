@@ -44,7 +44,7 @@ public class GenerateOtpHandler extends Constants implements Handler{
             apiResponseResolver.setRespData(data);
             return CompletableFuture.completedFuture(apiResponseResolver);
         }
-        return profileService.generateOtp(apiRequestResolver, email).thenComposeAsync(otpGenerationResp->{
+        return profileService.generateOtp(apiRequestResolver, email, profileType).thenComposeAsync(otpGenerationResp->{
             log.info("{} otpGeneration call completed with resp {}", apiRequestResolver.getLoggerString(), otpGenerationResp);
             if(!otpGenerationResp){
                 log.error("{} otp generation failed for provided email {}", apiRequestResolver.getLoggerString(), email);

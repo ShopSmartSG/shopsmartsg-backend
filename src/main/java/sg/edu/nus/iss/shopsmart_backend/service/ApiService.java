@@ -19,6 +19,7 @@ import sg.edu.nus.iss.shopsmart_backend.utils.RedisManager;
 import sg.edu.nus.iss.shopsmart_backend.utils.Utils;
 import sg.edu.nus.iss.shopsmart_backend.utils.WSUtils;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -63,9 +64,11 @@ public class ApiService extends Constants {
         }
 
         Map<String, String> queryParams = apiRequestResolver.getQueryParams();
-        if(ddo.isProtectedApi()){
-            queryParams.put("user-id", userId);
+        if(queryParams==null){
+            queryParams = new HashMap<>();
         }
+        queryParams.put(CORRELATION_ID, apiRequestResolver.getCorrelationId());
+
         String additionalUriData = apiRequestResolver.getAdditionalUriData();
 
         String serviceUrl = redisManager.getServiceEndpoint(ddo.getService());
@@ -75,8 +78,11 @@ public class ApiService extends Constants {
         }
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(apiEndpoint);
-        if (queryParams != null && !queryParams.isEmpty()) {
+        if (!queryParams.isEmpty()) {
             queryParams.forEach(uriBuilder::queryParam);
+        }
+        if(ddo.isProtectedApi()){
+            queryParams.put("user-id", userId);
         }
         HttpMethod method = Utils.getHttpMethod(ddo.getMethod());
         return wsUtils.makeWSCall(uriBuilder.toUriString(), apiRequestResolver.getRequestBody(),

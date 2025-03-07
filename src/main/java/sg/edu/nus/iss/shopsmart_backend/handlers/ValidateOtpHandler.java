@@ -46,7 +46,7 @@ public class ValidateOtpHandler extends Constants implements Handler{
             return CompletableFuture.completedFuture(apiResponseResolver);
         }
 
-        return profileService.validateOtp(apiRequestResolver, email, otp).thenComposeAsync(otpValidationResp -> {
+        return profileService.validateOtp(apiRequestResolver, email, otp, profileType).thenComposeAsync(otpValidationResp -> {
             log.info("{} validateOtp call completed with resp : {}", apiRequestResolver.getLoggerString(), otpValidationResp);
             if(!otpValidationResp){
                 log.error("{} otp validation failed for provided email {} and otp {}", apiRequestResolver.getLoggerString(), email, otp);

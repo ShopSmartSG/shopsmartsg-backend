@@ -423,13 +423,44 @@ public class AuthService extends Constants {
         });
     }
 
+    public CompletableFuture<ApiResponseResolver> performNativeOtpGenerate(ApiRequestResolver apiRequestResolver, String profileType, String email){
+        log.info("{} Starting native otp generate flow for profileType: {}", apiRequestResolver.getLoggerString(), profileType);
+        ObjectNode responseData = mapper.createObjectNode();
+        ApiResponseResolver apiResponseResolver = new ApiResponseResolver();
+        if(email==null || email.isEmpty()){
+            log.error("{} Email not found in request body for otp generate", apiRequestResolver.getLoggerString());
+            responseData.put(STATUS, FAILURE);
+            responseData.put(MESSAGE, "Invalid request provided");
+            apiResponseResolver.setStatusCode(HttpStatus.BAD_REQUEST);
+            apiResponseResolver.setRespData(responseData);
+            return CompletableFuture.completedFuture(apiResponseResolver);
+        }
+        return profileService.generateOtp(apiRequestResolver, email, profileType).thenApplyAsync(genOtpResp -> {
+            log.info("{} OTP generation response: {}", apiRequestResolver.getLoggerString(), genOtpResp);
+            if(!genOtpResp){
+                log.error("{} OTP generation failed for user", apiRequestResolver.getLoggerString());
+                responseData.put(STATUS, FAILURE);
+                responseData.put(MESSAGE, "Unable to generate OTP");
+                apiResponseResolver.setStatusCode(HttpStatus.OK);
+                apiResponseResolver.setRespData(responseData);
+                return apiResponseResolver;
+            }
+            log.info("{} OTP generated successfully for email: {}", apiRequestResolver.getLoggerString(), email);
+            responseData.put(STATUS, SUCCESS);
+            responseData.put(MESSAGE, "OTP generated");
+            apiResponseResolver.setStatusCode(HttpStatus.OK);
+            apiResponseResolver.setRespData(responseData);
+            return apiResponseResolver;
+        });
+    }
+
     public CompletableFuture<ApiResponseResolver> performNativeSignUp(ApiRequestResolver apiRequestResolver, String profileType){
         log.info("{} Starting native sign up flow for profileType: {}", apiRequestResolver.getLoggerString(), profileType);
         JsonNode requestBody = apiRequestResolver.getRequestBody();
         ObjectNode responseData = mapper.createObjectNode();
         ApiResponseResolver apiResponseResolver = new ApiResponseResolver();
-        if(requestBody == null || !requestBody.hasNonNull(EMAIL) || !requestBody.hasNonNull(PASSWORD)){
-            log.error("{} Email or password not found in request body for signUp", apiRequestResolver.getLoggerString());
+        if(requestBody == null || !requestBody.hasNonNull(EMAIL) || !requestBody.hasNonNull(PASSWORD) || !requestBody.hasNonNull(OTP)){
+            log.error("{} Email or password or otp not found in request body for signUp", apiRequestResolver.getLoggerString());
             responseData.put(STATUS, FAILURE);
             responseData.put(MESSAGE, "Invalid request provided");
             apiResponseResolver.setStatusCode(HttpStatus.BAD_REQUEST);
@@ -438,6 +469,7 @@ public class AuthService extends Constants {
         }
         String email = requestBody.get(EMAIL).asText();
         String password = requestBody.get(PASSWORD).asText();
+        String opt = requestBody.get(OTP).asText();
         String gcipEmailWithProfileType = Utils.insertProfileTypeIntoEmail(email, profileType);
         log.debug("updated email with profileType for signUp: {}", gcipEmailWithProfileType);
         GcipNativeLoginTokenResp gcipNativeSignUpTokenResp = nativeAuthForUserThroughGcip(gcipEmailWithProfileType, password,
@@ -462,6 +494,25 @@ public class AuthService extends Constants {
         log.debug("Id token received from GCIP for native signUp resp: {}", gcipNativeSignUpTokenResp.getIdToken());
         log.debug("Refresh token received from GCIP for native signUp resp: {}", gcipNativeSignUpTokenResp.getRefreshToken());
 
+        //TODO :: incorporate OTP validation part here as well.
+        return profileService.validateOtp(apiRequestResolver, email, opt, profileType).thenComposeAsync(valOtpResp -> {
+            log.info("{} OTP validation response for user register: {}", apiRequestResolver.getLoggerString(), valOtpResp);
+            if (!valOtpResp){
+                log.error("{} OTP validation failed for user registration", apiRequestResolver.getLoggerString());
+                responseData.put(STATUS, FAILURE);
+                responseData.put(MESSAGE, "Registration of user failed.");
+                apiResponseResolver.setStatusCode(HttpStatus.OK);
+                apiResponseResolver.setRespData(responseData);
+                return CompletableFuture.completedFuture(apiResponseResolver);
+            }
+            log.info("{} OTP validated successfully for user, can proceed for user registration: {}", apiRequestResolver.getLoggerString(), email);
+            return doProfileCreateAndFetchUserId(apiRequestResolver, profileType, email, gcipNativeSignUpTokenResp);
+        });
+    }
+
+    private CompletableFuture<ApiResponseResolver> doProfileCreateAndFetchUserId(ApiRequestResolver apiRequestResolver, String profileType, String email, GcipNativeLoginTokenResp gcipNativeSignUpTokenResp){
+        ObjectNode responseData = mapper.createObjectNode();
+        ApiResponseResolver apiResponseResolver = new ApiResponseResolver();
         return profileService.createProfile(apiRequestResolver, profileType).thenComposeAsync(createProfileResp -> {
             if(!createProfileResp){
                 log.error("{} Error in creating user profile for native sign up flow", apiRequestResolver.getLoggerString());
@@ -482,7 +533,6 @@ public class AuthService extends Constants {
                 return CompletableFuture.completedFuture(apiResponseResolver);
             }
             log.info("{} User profile created successfully for native sign up flow", apiRequestResolver.getLoggerString());
-            //TODO :: incorporate OTP validation part here as well.
             //cant use gcipNativeSignUpTokenResp.getEmail() as it has profileType appended to it. So need to use original email.
             return profileService.fetchUserIdForEmail(apiRequestResolver, email, profileType).thenApplyAsync(profileUserIdResp -> {
                 if(profileUserIdResp == null || profileUserIdResp.isEmpty()){
@@ -533,6 +583,7 @@ public class AuthService extends Constants {
         }
         String email = requestBody.get(EMAIL).asText();
         String password = requestBody.get(PASSWORD).asText();
+        String otp = requestBody.get(OTP).asText();
         String gcipEmailWithProfileType = Utils.insertProfileTypeIntoEmail(email, profileType);
         log.debug("updated email with profileType for login: {}", gcipEmailWithProfileType);
         GcipNativeLoginTokenResp gcipNativeLoginTokenResp = nativeAuthForUserThroughGcip(gcipEmailWithProfileType, password,
@@ -557,38 +608,50 @@ public class AuthService extends Constants {
         log.debug("Id token received from GCIP for native login resp: {}", gcipNativeLoginTokenResp.getIdToken());
         log.debug("Refresh token received from GCIP for native login resp: {}", gcipNativeLoginTokenResp.getRefreshToken());
 
-        //cant use gcipNativeLoginTokenResp.getEmail() as it has profileType appended to it. So need to use original email.
-        return profileService.fetchUserIdForEmail(apiRequestResolver, email, profileType).thenApplyAsync(profileUserIdResp -> {
-            if(profileUserIdResp == null || profileUserIdResp.isEmpty()){
-                log.error("{} Error in fetching user profile from profile service for native login flow", apiRequestResolver.getLoggerString());
+        //TODO :: incorporate OTP validation part here as well.
+        return profileService.validateOtp(apiRequestResolver, email, otp, profileType).thenComposeAsync(valOtpResp -> {
+            log.info("{} OTP validation response for user login: {}", apiRequestResolver.getLoggerString(), valOtpResp);
+            if (!valOtpResp){
+                log.error("{} OTP validation failed for user login", apiRequestResolver.getLoggerString());
                 responseData.put(STATUS, FAILURE);
-                responseData.put(MESSAGE, "Cant validate user");
+                responseData.put(MESSAGE, "Login of user failed.");
+                apiResponseResolver.setStatusCode(HttpStatus.OK);
+                apiResponseResolver.setRespData(responseData);
+                return CompletableFuture.completedFuture(apiResponseResolver);
+            }
+            log.info("{} OTP validated successfully for user, can proceed for user login: {}", apiRequestResolver.getLoggerString(), email);
+            //cant use gcipNativeLoginTokenResp.getEmail() as it has profileType appended to it. So need to use original email.
+            return profileService.fetchUserIdForEmail(apiRequestResolver, email, profileType).thenApplyAsync(profileUserIdResp -> {
+                if(profileUserIdResp == null || profileUserIdResp.isEmpty()){
+                    log.error("{} Error in fetching user profile from profile service for native login flow", apiRequestResolver.getLoggerString());
+                    responseData.put(STATUS, FAILURE);
+                    responseData.put(MESSAGE, "Cant validate user");
+                    apiResponseResolver.setStatusCode(HttpStatus.OK);
+                    apiResponseResolver.setRespData(responseData);
+                    return apiResponseResolver;
+                }
+                log.info("User profile id fetched from profile service for native login flow: {}", profileUserIdResp);
+
+                updateSessionInRedis(apiRequestResolver.getSessionId(), GCIP_ID_TOKEN,
+                        gcipNativeLoginTokenResp.getIdToken(), apiRequestResolver.getLoggerString());
+                updateSessionInRedis(apiRequestResolver.getSessionId(), GCIP_REFRESH_TOKEN,
+                        gcipNativeLoginTokenResp.getRefreshToken(), apiRequestResolver.getLoggerString());
+                //cant use gcipNativeLoginTokenResp.getEmail() as it has profileType appended to it. So need to use original email.
+                updateSessionInRedis(apiRequestResolver.getSessionId(), EMAIL, email, apiRequestResolver.getLoggerString());
+                updateSessionInRedis(apiRequestResolver.getSessionId(), LOGIN_TYPE, NATIVE, apiRequestResolver.getLoggerString());
+                updateSessionInRedis(apiRequestResolver.getSessionId(), PROFILE_TYPE, profileType, apiRequestResolver.getLoggerString());
+
+                apiRequestResolver.setUserId(profileUserIdResp);
+                apiRequestResolver.setLoggedIn(true);
+                commonService.updateUserIdInRedisInSessionData(apiRequestResolver);
+
+                responseData.put(STATUS, SUCCESS);
+                responseData.put(MESSAGE, "Successfully user logged in.");
+                responseData.put(REDIRECT_URI, getFrontendHomeUrlBasedOnProfileType(profileType));
                 apiResponseResolver.setStatusCode(HttpStatus.OK);
                 apiResponseResolver.setRespData(responseData);
                 return apiResponseResolver;
-            }
-            log.info("User profile id fetched from profile service for native login flow: {}", profileUserIdResp);
-            //TODO :: incorporate OTP validation part here as well.
-
-            updateSessionInRedis(apiRequestResolver.getSessionId(), GCIP_ID_TOKEN,
-                    gcipNativeLoginTokenResp.getIdToken(), apiRequestResolver.getLoggerString());
-            updateSessionInRedis(apiRequestResolver.getSessionId(), GCIP_REFRESH_TOKEN,
-                    gcipNativeLoginTokenResp.getRefreshToken(), apiRequestResolver.getLoggerString());
-            //cant use gcipNativeLoginTokenResp.getEmail() as it has profileType appended to it. So need to use original email.
-            updateSessionInRedis(apiRequestResolver.getSessionId(), EMAIL, email, apiRequestResolver.getLoggerString());
-            updateSessionInRedis(apiRequestResolver.getSessionId(), LOGIN_TYPE, NATIVE, apiRequestResolver.getLoggerString());
-            updateSessionInRedis(apiRequestResolver.getSessionId(), PROFILE_TYPE, profileType, apiRequestResolver.getLoggerString());
-
-            apiRequestResolver.setUserId(profileUserIdResp);
-            apiRequestResolver.setLoggedIn(true);
-            commonService.updateUserIdInRedisInSessionData(apiRequestResolver);
-
-            responseData.put(STATUS, SUCCESS);
-            responseData.put(MESSAGE, "Successfully user logged in.");
-            responseData.put(REDIRECT_URI, getFrontendHomeUrlBasedOnProfileType(profileType));
-            apiResponseResolver.setStatusCode(HttpStatus.OK);
-            apiResponseResolver.setRespData(responseData);
-            return apiResponseResolver;
+            });
         });
     }
 

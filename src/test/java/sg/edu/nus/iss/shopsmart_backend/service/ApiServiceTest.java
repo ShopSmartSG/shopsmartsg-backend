@@ -59,8 +59,9 @@ class ApiServiceTest extends Constants {
         apiRequestResolver.setApiKey("ddo-key");
         apiRequestResolver.setHeaders(new HashMap<>());
         apiRequestResolver.setRequestBody(objectMapper.createObjectNode());
-        apiRequestResolver.setQueryParams(Map.of("key", "value"));
+        apiRequestResolver.setQueryParams(new HashMap<>());
         apiRequestResolver.setAdditionalUriData("additional");
+        apiRequestResolver.setCorrelationId("correlation-id");
 
         DataDynamicObject ddo = new DataDynamicObject();
         ddo.setService("service");
@@ -88,8 +89,9 @@ class ApiServiceTest extends Constants {
         apiRequestResolver.setApiKey("ddo-key");
         apiRequestResolver.setHeaders(new HashMap<>());
         apiRequestResolver.setRequestBody(objectMapper.createObjectNode());
-        apiRequestResolver.setQueryParams(Map.of("key", "value"));
+        apiRequestResolver.setQueryParams(new HashMap<>());
         apiRequestResolver.setAdditionalUriData("additional");
+        apiRequestResolver.setCorrelationId("correlation-id");
 
         DataDynamicObject ddo = new DataDynamicObject();
         ddo.setService("service");
