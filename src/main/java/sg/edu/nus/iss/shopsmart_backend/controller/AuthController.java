@@ -39,16 +39,17 @@ public class AuthController extends Constants {
 
     private final AuthService authService;
     private final CommonService commonService;
-    private final ProfileService profileService;
     private final Utils utils;
 
     @Autowired
-    public AuthController(AuthService authService, CommonService commonService, ProfileService profileService, Utils utils) {
+    public AuthController(AuthService authService, CommonService commonService, Utils utils) {
         this.authService = authService;
         this.commonService = commonService;
-        this.profileService = profileService;
         this.utils = utils;
     }
+
+    //we assume that user cant login again in the same session if already logged in, do we still need to handle it in case someone directly hits api?
+    //Handle different types of urls to return based on profileTypes and login or home page redirects.
 
     @GetMapping("/google/login/{profile-type}")
     public ResponseEntity<String> googleLoginUrl(@PathVariable(name = "profile-type") String profileType,
@@ -58,7 +59,7 @@ public class AuthController extends Constants {
             log.error("Invalid profile type received for google login: {}", profileType);
             HttpHeaders headers = Utils.createHeaders(request);
 //            headers.setLocation(URI.create(frontendUrl.concat(QUESTION_MARK).concat("error=invalid-profile-type")));
-            return new ResponseEntity<>("Invalid profile type provided for google login", headers, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Invalid request provided for google login", headers, HttpStatus.BAD_REQUEST); //Bad request
         }
         ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, "google-login", null);
         // Generate google login url
@@ -89,7 +90,9 @@ public class AuthController extends Constants {
         if(!PROFILE_TYPES_LIST.contains(profileType)){
             log.error("Invalid profile type received for google callback: {}", profileType);
             HttpHeaders headers = Utils.createHeaders(request);
-            headers.setLocation(URI.create(frontendUrl.concat(SLASH).concat(LOGIN).concat(QUESTION_MARK).concat("error=invalid-profile-type")));
+            String frontendLoginUrl = frontendUrl.concat(QUESTION_MARK).concat("error=invalid-request");
+//            headers.setLocation(URI.create(frontendUrl.concat(SLASH).concat(LOGIN).concat(QUESTION_MARK).concat("error=invalid-profile-type")));
+            headers.setLocation(URI.create(frontendLoginUrl));
             return CompletableFuture.completedFuture(new ResponseEntity<>(headers, HttpStatus.FOUND));
         }
         ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, "google-login", null);
@@ -102,6 +105,9 @@ public class AuthController extends Constants {
         });
     }
 
+    //invalid profileType -> Bad req msg :
+    //failure -> error msg
+    //success -> customer/   , merchant/orders, delivery/orders
     @PostMapping("/native/signup/{profile-type}")
     public CompletableFuture<ResponseEntity<JsonNode>> nativeSignUp(@PathVariable(name = "profile-type") String profileType, @RequestBody JsonNode requestBody,
                              HttpServletRequest request, HttpServletResponse response){
@@ -110,7 +116,7 @@ public class AuthController extends Constants {
             log.error("Invalid profile type received for native signup: {}", profileType);
             ObjectNode responseData = mapper.createObjectNode();
             responseData.put(STATUS, FAILURE);
-            responseData.put(MESSAGE, "Invalid profile type received for native signup");
+            responseData.put(MESSAGE, "Invalid request provided for signup");
             HttpHeaders headers = Utils.createHeaders(request);
 //            headers.setLocation(URI.create(frontendUrl.concat(QUESTION_MARK).concat("error=invalid-profile-type")));
             return CompletableFuture.completedFuture(new ResponseEntity<>(responseData, headers, HttpStatus.BAD_REQUEST));
@@ -120,17 +126,21 @@ public class AuthController extends Constants {
         return authService.performNativeSignUp(apiRequestResolver, profileType).thenApplyAsync(apiResponseResolver -> {
             log.info("{} Received response from native sign up flow: {}", apiRequestResolver.getLoggerString(), apiResponseResolver);
             setRequiredCookies(apiRequestResolver, request, response);
-            if(!apiResponseResolver.getStatusCode().equals(HttpStatus.FOUND)){
-                return new ResponseEntity<>(apiResponseResolver.getRespData(), headers, apiResponseResolver.getStatusCode());
-            }else{
-                setRequiredCookies(apiRequestResolver, request, response);
-                headers.setLocation(URI.create(frontendUrl.concat(SLASH)));
-//            return new ResponseEntity<>("User successfully logged in", Utils.createHeaders(), HttpStatus.OK);
-                return new ResponseEntity<>(headers, HttpStatus.FOUND);
-            }
+            return new ResponseEntity<>(apiResponseResolver.getRespData(), headers, apiResponseResolver.getStatusCode());
+//            if(!apiResponseResolver.getStatusCode().equals(HttpStatus.FOUND)){
+//                return new ResponseEntity<>(apiResponseResolver.getRespData(), headers, apiResponseResolver.getStatusCode());
+//            }else{
+//                setRequiredCookies(apiRequestResolver, request, response);
+//                headers.setLocation(URI.create(frontendUrl.concat(SLASH)));
+////            return new ResponseEntity<>("User successfully logged in", Utils.createHeaders(), HttpStatus.OK);
+//                return new ResponseEntity<>(headers, HttpStatus.FOUND);
+//            }
         });
     }
 
+    //invalid profileType -> Bad req msg :
+    //failure -> error msg
+    //success -> customer/   , merchant/orders, delivery/orders
     @PostMapping("/native/login/{profile-type}")
     public CompletableFuture<ResponseEntity<JsonNode>> nativeLogin(@PathVariable(name = "profile-type") String profileType, @RequestBody JsonNode requestBody,
                             HttpServletRequest request, HttpServletResponse response){
@@ -139,7 +149,7 @@ public class AuthController extends Constants {
             log.error("Invalid profile type received for native login: {}", profileType);
             ObjectNode responseData = mapper.createObjectNode();
             responseData.put(STATUS, FAILURE);
-            responseData.put(MESSAGE, "Invalid profile type received for native login");
+            responseData.put(MESSAGE, "Invalid request provided for login");
             HttpHeaders headers = Utils.createHeaders(request);
 //            headers.setLocation(URI.create(frontendUrl.concat(SLASH).concat(LOGIN).concat(QUESTION_MARK).concat("error=invalid-profile-type")));
             return CompletableFuture.completedFuture(new ResponseEntity<>(responseData, headers, HttpStatus.BAD_REQUEST));
@@ -149,18 +159,20 @@ public class AuthController extends Constants {
         return authService.performNativeLogin(apiRequestResolver, profileType).thenApplyAsync(apiResponseResolver -> {
             log.info("{} Received response from native login flow: {}", apiRequestResolver.getLoggerString(), apiResponseResolver);
             setRequiredCookies(apiRequestResolver, request, response);
-            if(!apiResponseResolver.getStatusCode().equals(HttpStatus.FOUND)){
-                return new ResponseEntity<>(apiResponseResolver.getRespData(), headers, apiResponseResolver.getStatusCode());
-            }else{
-                headers.setLocation(URI.create(frontendUrl.concat(SLASH)));
-//            return new ResponseEntity<>("User successfully logged in", Utils.createHeaders(), HttpStatus.OK);
-                return new ResponseEntity<>(headers, HttpStatus.FOUND);
-            }
+            return new ResponseEntity<>(apiResponseResolver.getRespData(), headers, apiResponseResolver.getStatusCode());
+//            if(!apiResponseResolver.getStatusCode().equals(HttpStatus.FOUND)){
+//                return new ResponseEntity<>(apiResponseResolver.getRespData(), headers, apiResponseResolver.getStatusCode());
+//            }else{
+//                headers.setLocation(URI.create(frontendUrl.concat(SLASH)));
+////            return new ResponseEntity<>("User successfully logged in", Utils.createHeaders(), HttpStatus.OK);
+//                return new ResponseEntity<>(headers, HttpStatus.FOUND);
+//            }
         });
     }
 
     @GetMapping("/validate-token")
-    public ResponseEntity<JsonNode> validateToken(@CurrentSecurityContext(expression = "authentication") Authentication authentication, HttpServletRequest request, HttpServletResponse response){
+    public ResponseEntity<JsonNode> validateToken(@CurrentSecurityContext(expression = "authentication") Authentication authentication,
+                                                  HttpServletRequest request, HttpServletResponse response){
         log.info("Starting flow for validating session token");
         HttpHeaders headers = Utils.createHeaders(request);
         ApiRequestResolver apiRequestResolver = getApiRequestResolver(authentication, request, "validate-token");
@@ -168,7 +180,7 @@ public class AuthController extends Constants {
             log.error("{} User not logged in or user id not found in session", apiRequestResolver.getLoggerString());
             ObjectNode responseData = mapper.createObjectNode();
             responseData.put(STATUS, FAILURE);
-            responseData.put(MESSAGE, "No logged in user found in session");
+            responseData.put(MESSAGE, "No logged in user found");
             setRequiredCookies(apiRequestResolver, request, response);
             return new ResponseEntity<>(responseData, headers, HttpStatus.OK);
         }
@@ -179,21 +191,41 @@ public class AuthController extends Constants {
         return new ResponseEntity<>(responseData, headers, HttpStatus.OK);
     }
 
-    @GetMapping("/logout")
-    public ResponseEntity<Void> logout(@CurrentSecurityContext(expression = "authentication") Authentication authentication, HttpServletRequest request, HttpServletResponse response){
-        log.info("Starting flow for logging out user");
+    //invalid profileType -> Bad req msg :
+    //failure -> error msg
+    //success -> profileType/login
+    @GetMapping("/logout/{profile-type}")
+    public ResponseEntity<JsonNode> logout(@CurrentSecurityContext(expression = "authentication") Authentication authentication,
+                                           @PathVariable(name = "profile-type") String profileType,
+                                           HttpServletRequest request, HttpServletResponse response){
+        log.info("Starting flow for logging out user with profileType : {}", profileType);
+        if(!PROFILE_TYPES_LIST.contains(profileType)){
+            log.error("Invalid profile type received for logout: {}", profileType);
+            ObjectNode responseData = mapper.createObjectNode();
+            responseData.put(STATUS, FAILURE);
+            responseData.put(MESSAGE, "Invalid request");
+            HttpHeaders headers = Utils.createHeaders(request);
+//            headers.setLocation(URI.create(frontendUrl.concat(SLASH).concat(LOGIN).concat(QUESTION_MARK).concat("error=invalid-profile-type")));
+            return new ResponseEntity<>(responseData, headers, HttpStatus.BAD_REQUEST);
+        }
         HttpHeaders headers = Utils.createHeaders(request);
+        ObjectNode responseData = mapper.createObjectNode();
         ApiRequestResolver apiRequestResolver = getApiRequestResolver(authentication, request, "logout");
         if(!apiRequestResolver.isLoggedIn() || apiRequestResolver.getUserId()==null || apiRequestResolver.getUserId().isEmpty()){
             log.error("{} User not logged in or user id not found in session in order to do user logout", apiRequestResolver.getLoggerString());
             setRequiredCookies(apiRequestResolver, request, response);
-            headers.setLocation(URI.create(frontendUrl.concat(QUESTION_MARK).concat("error=unauthorized")));
-            return new ResponseEntity<>(headers, HttpStatus.FOUND);
+//            headers.setLocation(URI.create(frontendUrl.concat(QUESTION_MARK).concat("error=unauthorized")));
+            responseData.put(STATUS, FAILURE);
+            responseData.put(MESSAGE, "Unauthorized action");
+            return new ResponseEntity<>(responseData, headers, HttpStatus.OK);
         }
         authService.logoutUser(apiRequestResolver);
         setRequiredCookies(apiRequestResolver, request, response);
-        headers.setLocation(URI.create(frontendUrl));
-        return new ResponseEntity<>(headers, HttpStatus.FOUND);
+//        headers.setLocation(URI.create(frontendUrl));
+        responseData.put(STATUS, SUCCESS);
+        responseData.put(MESSAGE, "User logged out successfully");
+        responseData.put(REDIRECT_URI, authService.getFrontendHomeUrlBasedOnProfileType(profileType));
+        return new ResponseEntity<>(responseData, headers, HttpStatus.OK);
     }
 
     private ApiRequestResolver getApiRequestResolver(Authentication authentication, HttpServletRequest request, String apiKey) {

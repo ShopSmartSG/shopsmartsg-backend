@@ -323,6 +323,8 @@ public class AuthService extends Constants {
         return mapper.convertValue(response.getBody(), GcipNativeLoginTokenResp.class);
     }
 
+    //----> errors -> login (profileType/login)
+    //-----> success customer/   , merchant/orders, delivery/orders
     public CompletableFuture<URI> performGoogleCallbackHandling(ApiRequestResolver apiRequestResolver, String code, String state, String profileType){
         log.info("{} Starting google callback handling for profileType: {}, state: {} and code: {}",
                 apiRequestResolver.getLoggerString(), profileType, state, code);
@@ -332,30 +334,38 @@ public class AuthService extends Constants {
                         STATE, state, apiRequestResolver.getLoggerString())){
             log.error("{} Invalid state value received in callback for google login", apiRequestResolver.getLoggerString());
 //            return CompletableFuture.completedFuture(new ResponseEntity<>(headers, HttpStatus.FOUND));
-            return CompletableFuture.completedFuture(URI.create(frontendUrl.concat(SLASH)
-                    .concat(LOGIN).concat(QUESTION_MARK).concat("error=invalidstate")));
+            String frontendLoginUrl = frontendUrl.concat(SLASH).concat(profileType).concat(SLASH)
+                    .concat(LOGIN).concat(QUESTION_MARK).concat("error=invalidcallback");
+            log.info("{} user is being redirected for invalid state to url : {}", apiRequestResolver.getLoggerString(), frontendUrl);
+            return CompletableFuture.completedFuture(URI.create(frontendLoginUrl));
         }
 
         if(profileType == null || profileType.isEmpty() ||
                 !validateIfCallbackValueMatchesDataInSession(apiRequestResolver.getSessionId(),
                         PROFILE_TYPE, profileType, apiRequestResolver.getLoggerString())){
             log.error("{} Invalid profile type received in callback for google login", apiRequestResolver.getLoggerString());
+            String frontendLoginUrl = frontendUrl.concat(SLASH).concat(profileType).concat(SLASH)
+                    .concat(LOGIN).concat(QUESTION_MARK).concat("error=invalidcallback");
 //            return CompletableFuture.completedFuture(new ResponseEntity<>(headers, HttpStatus.FOUND));
-            return CompletableFuture.completedFuture(URI.create(frontendUrl.concat(SLASH)
-                    .concat(LOGIN).concat(QUESTION_MARK).concat("error=invalidprofiletype")));
+            log.info("{} user is being redirected for empty/invalid/non-matching profileType to url : {}", apiRequestResolver.getLoggerString(), frontendUrl);
+            return CompletableFuture.completedFuture(URI.create(frontendLoginUrl));
         }
 
         OAuth2TokenExchangeResponse accessTokenResp = exchangeCodeForTokens(apiRequestResolver, code, profileType);
         if(accessTokenResp == null){
             log.error("{} Exception occurred in fetching access token from google", apiRequestResolver.getLoggerString());
 //            return CompletableFuture.completedFuture(new ResponseEntity<>(headers, HttpStatus.FOUND));
-            return CompletableFuture.completedFuture(URI.create(frontendUrl.concat(SLASH)
-                    .concat(LOGIN).concat(QUESTION_MARK).concat("error=loginfailed")));
+            String frontendLoginUrl = frontendUrl.concat(SLASH).concat(profileType).concat(SLASH)
+                    .concat(LOGIN).concat(QUESTION_MARK).concat("error=loginfailed");
+            log.info("{} user is being redirected for exception in login to google to url : {}", apiRequestResolver.getLoggerString(), frontendUrl);
+            return CompletableFuture.completedFuture(URI.create(frontendLoginUrl));
         }
         if(accessTokenResp.isInvalidGrant()){
             log.error("{} Invalid grant received in token exchange response", apiRequestResolver.getLoggerString());
-            return CompletableFuture.completedFuture(URI.create(frontendUrl.concat(SLASH)
-                    .concat(LOGIN).concat(QUESTION_MARK).concat("error=loginagain")));
+            String frontendLoginUrl = frontendUrl.concat(SLASH).concat(profileType).concat(SLASH)
+                    .concat(LOGIN).concat(QUESTION_MARK).concat("error=loginagain");
+            log.info("{} user is being redirected for unable to login to google to url : {}", apiRequestResolver.getLoggerString(), frontendUrl);
+            return CompletableFuture.completedFuture(URI.create(frontendLoginUrl));
         }
         log.debug("Access token received with access token value {}", accessTokenResp.getAccessToken());
         log.debug("Access token received with id token {}", accessTokenResp.getIdToken());
@@ -364,13 +374,17 @@ public class AuthService extends Constants {
         if (gcipSignInWithIdpTokenResponse == null){
             log.error("{} Error in fetching user profile from GCIP", apiRequestResolver.getLoggerString());
 //            return CompletableFuture.completedFuture(new ResponseEntity<>(headers, HttpStatus.FOUND));
-            return CompletableFuture.completedFuture(URI.create(frontendUrl.concat(SLASH)
-                    .concat(LOGIN).concat(QUESTION_MARK).concat("error=userauthfailed")));
+            String frontendLoginUrl = frontendUrl.concat(SLASH).concat(profileType).concat(SLASH)
+                    .concat(LOGIN).concat(QUESTION_MARK).concat("error=loginfailed");
+            log.info("{} user is being redirected for exception in login to gcip to url : {}", apiRequestResolver.getLoggerString(), frontendUrl);
+            return CompletableFuture.completedFuture(URI.create(frontendLoginUrl));
         }
         if(gcipSignInWithIdpTokenResponse.isInvalid()){
             log.error("{} Invalid input response received during signInWithIdp response", apiRequestResolver.getLoggerString());
-            return CompletableFuture.completedFuture(URI.create(frontendUrl.concat(SLASH)
-                    .concat(LOGIN).concat(QUESTION_MARK).concat("error=tryloginagain")));
+            String frontendLoginUrl = frontendUrl.concat(SLASH).concat(profileType).concat(SLASH)
+                    .concat(LOGIN).concat(QUESTION_MARK).concat("error=loginagain");
+            log.info("{} user is being redirected for unable to login to gcip to url : {}", apiRequestResolver.getLoggerString(), frontendUrl);
+            return CompletableFuture.completedFuture(URI.create(frontendLoginUrl));
         }
         log.debug("Email received from GCIP: {}", gcipSignInWithIdpTokenResponse.getEmail());
         log.debug("Id token received from GCIP: {}", gcipSignInWithIdpTokenResponse.getIdToken());
@@ -380,7 +394,10 @@ public class AuthService extends Constants {
             if(profileUserIdResp == null || profileUserIdResp.isEmpty()){
                 log.error("{} Error in fetching user profile from profile service", apiRequestResolver.getLoggerString());
 //                return new ResponseEntity<>(headers, HttpStatus.FOUND);
-                return URI.create(frontendUrl.concat(SLASH).concat(LOGIN).concat(QUESTION_MARK).concat("error=unabletologin"));
+                String frontendLoginUrl = frontendUrl.concat(SLASH).concat(profileType).concat(SLASH)
+                        .concat(LOGIN).concat(QUESTION_MARK).concat("error=loginfailed");
+                log.info("{} user is being redirected for unable to fetch profile to url : {}", apiRequestResolver.getLoggerString(), frontendUrl);
+                return URI.create(frontendLoginUrl);
             }
             log.info("User profile id fetched from profile service: {}", profileUserIdResp);
 
@@ -399,7 +416,9 @@ public class AuthService extends Constants {
             apiRequestResolver.setUserId(profileUserIdResp);
             apiRequestResolver.setLoggedIn(true);
             commonService.updateUserIdInRedisInSessionData(apiRequestResolver);
-            return URI.create(frontendUrl.concat(SLASH));
+            String frontendHomeUrl = getFrontendHomeUrlBasedOnProfileType(profileType);
+            log.info("{} user is being redirected to url : {}", apiRequestResolver.getLoggerString(), frontendHomeUrl);
+            return URI.create(frontendHomeUrl);
 //            return new ResponseEntity<>(headers, HttpStatus.FOUND);
         });
     }
@@ -412,7 +431,7 @@ public class AuthService extends Constants {
         if(requestBody == null || !requestBody.hasNonNull(EMAIL) || !requestBody.hasNonNull(PASSWORD)){
             log.error("{} Email or password not found in request body for signUp", apiRequestResolver.getLoggerString());
             responseData.put(STATUS, FAILURE);
-            responseData.put(MESSAGE, "Email or password not found in request body");
+            responseData.put(MESSAGE, "Invalid request provided");
             apiResponseResolver.setStatusCode(HttpStatus.BAD_REQUEST);
             apiResponseResolver.setRespData(responseData);
             return CompletableFuture.completedFuture(apiResponseResolver);
@@ -426,16 +445,16 @@ public class AuthService extends Constants {
         if (gcipNativeSignUpTokenResp == null){
             log.error("{} Error occurred while trying to register user creds with GCIP for signUp", apiRequestResolver.getLoggerString());
             responseData.put(STATUS, FAILURE);
-            responseData.put(MESSAGE, "Unable to register user credentials with GCIP or user already exists");
-            apiResponseResolver.setStatusCode(HttpStatus.BAD_REQUEST);
+            responseData.put(MESSAGE, "Unable to register user.");
+            apiResponseResolver.setStatusCode(HttpStatus.OK);
             apiResponseResolver.setRespData(responseData);
             return CompletableFuture.completedFuture(apiResponseResolver);
         }
         if(gcipNativeSignUpTokenResp.isInvalidCredentials()){
             log.error("{} Unable to register user with GCIP due to user possibily already exists", apiRequestResolver.getLoggerString());
             responseData.put(STATUS, FAILURE);
-            responseData.put(MESSAGE, "Unable to register user with GCIP, user already exists");
-            apiResponseResolver.setStatusCode(HttpStatus.BAD_REQUEST);
+            responseData.put(MESSAGE, "Unable to register user or user already exists.");
+            apiResponseResolver.setStatusCode(HttpStatus.OK);
             apiResponseResolver.setRespData(responseData);
             return CompletableFuture.completedFuture(apiResponseResolver);
         }
@@ -448,7 +467,7 @@ public class AuthService extends Constants {
                 log.error("{} Error in creating user profile for native sign up flow", apiRequestResolver.getLoggerString());
                 responseData.put(STATUS, FAILURE);
                 responseData.put(MESSAGE, "Unable to register user profile or user already exists");
-                apiResponseResolver.setStatusCode(HttpStatus.BAD_REQUEST);
+                apiResponseResolver.setStatusCode(HttpStatus.OK);
                 apiResponseResolver.setRespData(responseData);
                 log.info("{} Deleting account through GCIP due to profile creation failure", apiRequestResolver.getLoggerString());
                 deleteAccountThroughGcip(gcipNativeSignUpTokenResp.getIdToken(), apiRequestResolver.getSessionId(), apiRequestResolver.getLoggerString());
@@ -469,8 +488,8 @@ public class AuthService extends Constants {
                 if(profileUserIdResp == null || profileUserIdResp.isEmpty()){
                     log.error("{} Error in fetching user profile from profile service post profile creation", apiRequestResolver.getLoggerString());
                     responseData.put(STATUS, FAILURE);
-                    responseData.put(MESSAGE, "Unable to fetch profile post register");
-                    apiResponseResolver.setStatusCode(HttpStatus.BAD_REQUEST);
+                    responseData.put(MESSAGE, "Unable to register user");
+                    apiResponseResolver.setStatusCode(HttpStatus.OK);
                     apiResponseResolver.setRespData(responseData);
                     return apiResponseResolver;
                 }
@@ -488,7 +507,12 @@ public class AuthService extends Constants {
                 apiRequestResolver.setUserId(profileUserIdResp);
                 apiRequestResolver.setLoggedIn(true);
                 commonService.updateUserIdInRedisInSessionData(apiRequestResolver);
-                apiResponseResolver.setStatusCode(HttpStatus.FOUND);
+
+                responseData.put(STATUS, SUCCESS);
+                responseData.put(MESSAGE, "Successfully user registered.");
+                responseData.put(REDIRECT_URI, getFrontendHomeUrlBasedOnProfileType(profileType));
+                apiResponseResolver.setStatusCode(HttpStatus.OK);
+                apiResponseResolver.setRespData(responseData);
                 return apiResponseResolver;
             });
         });
@@ -502,7 +526,7 @@ public class AuthService extends Constants {
         if(requestBody == null || !requestBody.hasNonNull(EMAIL) || !requestBody.hasNonNull(PASSWORD)){
             log.error("{} Email or password not found in request body for login", apiRequestResolver.getLoggerString());
             responseData.put(STATUS, FAILURE);
-            responseData.put(MESSAGE, "Email or password not found in request body");
+            responseData.put(MESSAGE, "Invalid request provided");
             apiResponseResolver.setStatusCode(HttpStatus.BAD_REQUEST);
             apiResponseResolver.setRespData(responseData);
             return CompletableFuture.completedFuture(apiResponseResolver);
@@ -516,16 +540,16 @@ public class AuthService extends Constants {
         if (gcipNativeLoginTokenResp == null){
             log.error("{} Error occurred while trying to validate user creds with GCIP", apiRequestResolver.getLoggerString());
             responseData.put(STATUS, FAILURE);
-            responseData.put(MESSAGE, "Unable to validate user credentials with GCIP");
-            apiResponseResolver.setStatusCode(HttpStatus.BAD_REQUEST);
+            responseData.put(MESSAGE, "Unable to validate user");
+            apiResponseResolver.setStatusCode(HttpStatus.OK);
             apiResponseResolver.setRespData(responseData);
             return CompletableFuture.completedFuture(apiResponseResolver);
         }
         if(gcipNativeLoginTokenResp.isInvalidCredentials()){
             log.error("{} Unable to validate user with GCIP due to invalid credentials", apiRequestResolver.getLoggerString());
             responseData.put(STATUS, FAILURE);
-            responseData.put(MESSAGE, "Unable to validate user with GCIP, invalid credentials");
-            apiResponseResolver.setStatusCode(HttpStatus.BAD_REQUEST);
+            responseData.put(MESSAGE, "Unable to validate user.");
+            apiResponseResolver.setStatusCode(HttpStatus.OK);
             apiResponseResolver.setRespData(responseData);
             return CompletableFuture.completedFuture(apiResponseResolver);
         }
@@ -533,13 +557,13 @@ public class AuthService extends Constants {
         log.debug("Id token received from GCIP for native login resp: {}", gcipNativeLoginTokenResp.getIdToken());
         log.debug("Refresh token received from GCIP for native login resp: {}", gcipNativeLoginTokenResp.getRefreshToken());
 
-        //cant use gcipNativeSignUpTokenResp.getEmail() as it has profileType appended to it. So need to use original email.
+        //cant use gcipNativeLoginTokenResp.getEmail() as it has profileType appended to it. So need to use original email.
         return profileService.fetchUserIdForEmail(apiRequestResolver, email, profileType).thenApplyAsync(profileUserIdResp -> {
             if(profileUserIdResp == null || profileUserIdResp.isEmpty()){
                 log.error("{} Error in fetching user profile from profile service for native login flow", apiRequestResolver.getLoggerString());
                 responseData.put(STATUS, FAILURE);
-                responseData.put(MESSAGE, "Unable to fetch user profile for login");
-                apiResponseResolver.setStatusCode(HttpStatus.BAD_REQUEST);
+                responseData.put(MESSAGE, "Cant validate user");
+                apiResponseResolver.setStatusCode(HttpStatus.OK);
                 apiResponseResolver.setRespData(responseData);
                 return apiResponseResolver;
             }
@@ -550,7 +574,7 @@ public class AuthService extends Constants {
                     gcipNativeLoginTokenResp.getIdToken(), apiRequestResolver.getLoggerString());
             updateSessionInRedis(apiRequestResolver.getSessionId(), GCIP_REFRESH_TOKEN,
                     gcipNativeLoginTokenResp.getRefreshToken(), apiRequestResolver.getLoggerString());
-            //cant use gcipNativeSignUpTokenResp.getEmail() as it has profileType appended to it. So need to use original email.
+            //cant use gcipNativeLoginTokenResp.getEmail() as it has profileType appended to it. So need to use original email.
             updateSessionInRedis(apiRequestResolver.getSessionId(), EMAIL, email, apiRequestResolver.getLoggerString());
             updateSessionInRedis(apiRequestResolver.getSessionId(), LOGIN_TYPE, NATIVE, apiRequestResolver.getLoggerString());
             updateSessionInRedis(apiRequestResolver.getSessionId(), PROFILE_TYPE, profileType, apiRequestResolver.getLoggerString());
@@ -558,7 +582,12 @@ public class AuthService extends Constants {
             apiRequestResolver.setUserId(profileUserIdResp);
             apiRequestResolver.setLoggedIn(true);
             commonService.updateUserIdInRedisInSessionData(apiRequestResolver);
-            apiResponseResolver.setStatusCode(HttpStatus.FOUND);
+
+            responseData.put(STATUS, SUCCESS);
+            responseData.put(MESSAGE, "Successfully user logged in.");
+            responseData.put(REDIRECT_URI, getFrontendHomeUrlBasedOnProfileType(profileType));
+            apiResponseResolver.setStatusCode(HttpStatus.OK);
+            apiResponseResolver.setRespData(responseData);
             return apiResponseResolver;
         });
     }
@@ -607,6 +636,13 @@ public class AuthService extends Constants {
 //        }
 //        sessionData.put(key, value);
 //        apiRequestResolver.setSessionAttributes(sessionData);
+    }
+
+    public String getFrontendHomeUrlBasedOnProfileType(String profileType){
+        if(profileType.equalsIgnoreCase(MERCHANT) || profileType.equalsIgnoreCase(DELIVERY)){
+            return frontendUrl.concat(SLASH).concat(profileType).concat(SLASH).concat("orders");
+        }
+        return frontendUrl;
     }
 
 
