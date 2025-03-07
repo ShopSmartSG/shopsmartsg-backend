@@ -116,7 +116,7 @@ public class AuthController extends Constants {
             return CompletableFuture.completedFuture(new ResponseEntity<>(responseData, headers, HttpStatus.BAD_REQUEST));
         }
         ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, "generate-otp", null);
-        return authService.performNativeOtpGenerate(apiRequestResolver, email, profileType).thenApplyAsync(apiResponseResolver -> {
+        return authService.performNativeOtpGenerate(apiRequestResolver, profileType, email).thenApplyAsync(apiResponseResolver -> {
             log.info("{} Received response from OTP generation flow: {}", apiRequestResolver.getLoggerString(), apiResponseResolver);
             setRequiredCookies(apiRequestResolver, request, response);
             return new ResponseEntity<>(apiResponseResolver.getRespData(), headers, apiResponseResolver.getStatusCode());
