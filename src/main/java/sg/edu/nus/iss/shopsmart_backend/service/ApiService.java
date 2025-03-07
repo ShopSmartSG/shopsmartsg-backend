@@ -64,7 +64,7 @@ public class ApiService extends Constants {
 
         Map<String, String> queryParams = apiRequestResolver.getQueryParams();
         if(ddo.isProtectedApi()){
-            queryParams.put(USER_ID, userId);
+            queryParams.put("user-id", userId);
         }
         String additionalUriData = apiRequestResolver.getAdditionalUriData();
 
