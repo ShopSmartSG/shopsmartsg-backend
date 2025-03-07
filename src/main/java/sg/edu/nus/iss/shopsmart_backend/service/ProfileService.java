@@ -39,7 +39,7 @@ public class ProfileService extends Constants {
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(apiEndpoint);
         uriBuilder.queryParam(EMAIL, email);
-        uriBuilder.queryParam(PROFILE_TYPE, profileType);
+        uriBuilder.queryParam(PROFILE_TYPE, profileType.toUpperCase());
         HttpMethod method = Utils.getHttpMethod(ddo.getMethod());
         return wsUtils.makeWSCall(uriBuilder.toUriString(), null, new HashMap<>(), method,
                 ddo.getConnectTimeout(), ddo.getReadTimeout(), ddo.getReturnClass()).thenApplyAsync(response -> {
@@ -62,12 +62,12 @@ public class ProfileService extends Constants {
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(apiEndpoint);
         uriBuilder.queryParam(EMAIL, email);
         uriBuilder.queryParam(OTP, otp);
-        uriBuilder.queryParam(PROFILE_TYPE, profileType);
+        uriBuilder.queryParam(PROFILE_TYPE, profileType.toUpperCase());
 
         ObjectNode requestBody = mapper.createObjectNode();
         requestBody.put(EMAIL, email);
         requestBody.put(OTP, otp);
-        requestBody.put(PROFILE_TYPE, profileType);
+        requestBody.put(PROFILE_TYPE, profileType.toUpperCase());
 
         HttpMethod method = Utils.getHttpMethod(ddo.getMethod()); //need to be POST
         return wsUtils.makeWSCall(uriBuilder.toUriString(), requestBody, new HashMap<>(), method,
