@@ -203,6 +203,7 @@ public class AuthController extends Constants {
         ObjectNode responseData = mapper.createObjectNode();
         responseData.put(STATUS, SUCCESS);
         responseData.put(MESSAGE, "Valid user found in session");
+        responseData.put(PROFILE_TYPE, apiRequestResolver.getSessionAttributes().get(PROFILE_TYPE));
         setRequiredCookies(apiRequestResolver, request, response);
         return new ResponseEntity<>(responseData, headers, HttpStatus.OK);
     }
