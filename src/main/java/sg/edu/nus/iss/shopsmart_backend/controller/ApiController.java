@@ -100,7 +100,7 @@ public class ApiController extends Constants {
     }
 
     @PostMapping("/{api-key}/**")
-    public ResponseEntity<JsonNode> handlePostRequest(@AuthenticationPrincipal Authentication authentication,
+    public ResponseEntity<JsonNode> handlePostRequest(@CurrentSecurityContext(expression = "authentication") Authentication authentication,
                                                                          @PathVariable(name = "api-key") String apiKey, @RequestBody JsonNode requestBody,
                                                                          HttpServletRequest request, HttpServletResponse response) throws Exception {
         log.info("Handling POST request for API: {}", apiKey);
@@ -128,7 +128,7 @@ public class ApiController extends Constants {
     }
 
     @PutMapping("/{api-key}/**")
-    public ResponseEntity<JsonNode> handlePutRequest(@AuthenticationPrincipal Authentication authentication,
+    public ResponseEntity<JsonNode> handlePutRequest(@CurrentSecurityContext(expression = "authentication") Authentication authentication,
                                                                         @PathVariable(name = "api-key") String apiKey, @RequestBody JsonNode requestBody,
                                                                         HttpServletRequest request, HttpServletResponse response) throws Exception {
         log.info("Handling PUT request for API: {}", apiKey);
@@ -156,7 +156,7 @@ public class ApiController extends Constants {
     }
 
     @PatchMapping("/{api-key}/**")
-    public ResponseEntity<JsonNode> handlePatchRequest(@AuthenticationPrincipal Authentication authentication,
+    public ResponseEntity<JsonNode> handlePatchRequest(@CurrentSecurityContext(expression = "authentication") Authentication authentication,
                                                                           @PathVariable(name = "api-key") String apiKey, @RequestBody JsonNode requestBody,
                                                                           HttpServletRequest request, HttpServletResponse response) throws Exception {
         log.info("Handling PATCH request for API: {}", apiKey);
@@ -184,7 +184,7 @@ public class ApiController extends Constants {
     }
 
     @DeleteMapping("/{api-key}/**")
-    public ResponseEntity<JsonNode> handleDeleteRequest(@AuthenticationPrincipal Authentication authentication,
+    public ResponseEntity<JsonNode> handleDeleteRequest(@CurrentSecurityContext(expression = "authentication") Authentication authentication,
                                                                            @PathVariable(name = "api-key") String apiKey, HttpServletRequest request,
                                                                            HttpServletResponse response) throws Exception {
         log.info("Handling DELETE request for API: {}", apiKey);
