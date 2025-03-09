@@ -44,6 +44,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("https://app.shopsmartsg.com", "https://shopsmartsg.com", "https://accounts.google.com"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowCredentials(true);
         configuration.setAllowedHeaders(Arrays.asList("DNT","User-Agent","X-Requested-With","If-Modified-Since","Cache-Control","Content-Type","Range","Authorization"));
         // Optionally set allow credentials, max age, etc.
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
