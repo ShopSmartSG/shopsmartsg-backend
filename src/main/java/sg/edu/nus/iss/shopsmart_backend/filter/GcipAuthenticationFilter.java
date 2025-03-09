@@ -3,12 +3,12 @@ package sg.edu.nus.iss.shopsmart_backend.filter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.core.util.Json;
 import jakarta.servlet.*;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.filter.OncePerRequestFilter;
 import sg.edu.nus.iss.shopsmart_backend.model.ApiRequestResolver;
@@ -45,16 +45,20 @@ public class GcipAuthenticationFilter extends OncePerRequestFilter implements Fi
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         String path = request.getRequestURI();
-        // Skip filter for specific endpoints
         if (path.startsWith("/auth/google/") || path.startsWith("/auth/native/")
                 || path.startsWith("/profile/") || path.startsWith("/redis-api/")
                 || path.matches("/") || path.matches("/home")) {
+            log.info("Path {} is allowed path, no need to verify user", path);
+            filterChain.doFilter(request, response);
+            return;
+        }
+        if (HttpMethod.OPTIONS.matches(request.getMethod())) {
+            log.info("Request method is OPTIONS, no need to verify user");
             filterChain.doFilter(request, response);
             return;
         }
 
         ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, "user-val", null);
-//        String sessionId = extractSessionIdFromCookies(request.getCookies());
         String sessionId = apiRequestResolver.getSessionId();
         if (sessionId != null) {
             String gcipIdToken = redisManager.getHashValue(REDIS_SESSION_PREFIX.concat(sessionId), GCIP_ID_TOKEN);
@@ -103,9 +107,6 @@ public class GcipAuthenticationFilter extends OncePerRequestFilter implements Fi
                         log.info("{} GCIP verification failed for session unable to verify user", apiRequestResolver.getLoggerString());
                         apiRequestResolver.setUserId(null);
                         apiRequestResolver.setLoggedIn(false);
-                        //based on API config in redis then if protected then should return error resp
-                        //to be properly handled in ApiService/ApiController.
-                        //return here a basic Authentication object with empty userId and email.
                         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                                 "", null, Collections.emptyList());
                         auth.setDetails(apiRequestResolver);
@@ -115,9 +116,6 @@ public class GcipAuthenticationFilter extends OncePerRequestFilter implements Fi
                     logger.error("Some exception caused GCIP verification to fail, here, we will block further processing of request.", ex);
                     apiRequestResolver.setUserId(null);
                     apiRequestResolver.setLoggedIn(false);
-                    //based on API config in redis then if protected then should return error resp
-                    //to be properly handled in ApiService/ApiController.
-                    //return here a basic Authentication object with empty userId and email.
                     UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken("", null);
                     auth.setDetails(apiRequestResolver);
                     SecurityContextHolder.getContext().setAuthentication(auth);
@@ -126,29 +124,14 @@ public class GcipAuthenticationFilter extends OncePerRequestFilter implements Fi
                 log.info("{} GCIP ID Token is null or empty for session, unable to verify user", apiRequestResolver.getLoggerString());
                 apiRequestResolver.setUserId(null);
                 apiRequestResolver.setLoggedIn(false);
-                //based on API config in redis then if protected then should return error resp
-                //to be properly handled in ApiService/ApiController.
-                //return here a basic Authentication object with empty userId and email.
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                         "", null, Collections.emptyList());
                 auth.setDetails(apiRequestResolver);
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }
         }
-        // Continue filter chain
         filterChain.doFilter(request, response);
     }
-
-//    private String extractSessionIdFromCookies(Cookie[] cookies) {
-//        if (cookies != null) {
-//            for (Cookie cookie : cookies) {
-//                if (SESSION_ID.equals(cookie.getName())) {
-//                    return cookie.getValue();
-//                }
-//            }
-//        }
-//        return null;
-//    }
 
     private String fetchValidatedUser(GcipAccLookupResponse gcipAccLookupResp, String sessionId, String loggerString) {
         String emailFromGcip = gcipAccLookupResp.getUsers().getFirst().getProviderUserInfo().getFirst().getEmail();
