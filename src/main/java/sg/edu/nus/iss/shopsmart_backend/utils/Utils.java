@@ -129,7 +129,7 @@ public class Utils extends Constants{
         headers.add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         headers.add("Access-Control-Allow-Headers", "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range");
         headers.add("Access-Control-Expose-Headers", "Content-Length,Content-Range");
-        headers.add("Access-Control-Allow-Credentials", "true");
+//        headers.add("Access-Control-Allow-Credentials", "true");
         return headers;
     }
 }
