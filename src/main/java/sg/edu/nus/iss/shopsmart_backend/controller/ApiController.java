@@ -15,6 +15,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.web.bind.annotation.*;
 import sg.edu.nus.iss.shopsmart_backend.model.ApiRequestResolver;
+import sg.edu.nus.iss.shopsmart_backend.model.ApiResponseResolver;
 import sg.edu.nus.iss.shopsmart_backend.service.ApiService;
 import sg.edu.nus.iss.shopsmart_backend.service.CommonService;
 
@@ -73,108 +74,141 @@ public class ApiController extends Constants {
     }
 
     @GetMapping("/{api-key}/**")
-    public CompletableFuture<ResponseEntity<JsonNode>> handleGetRequest(@CurrentSecurityContext(expression = "authentication") Authentication authentication,
+    public ResponseEntity<JsonNode> handleGetRequest(@CurrentSecurityContext(expression = "authentication") Authentication authentication,
                                                                         @PathVariable(name = "api-key") String apiKey,
-                                                                        HttpServletRequest request, HttpServletResponse response) {
+                                                                        HttpServletRequest request, HttpServletResponse response) throws Exception{
         HttpHeaders headers = Utils.createHeaders(request);
         log.info("Handling GET request for API: {}", apiKey);
-//        ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, apiKey, null);
         ApiRequestResolver apiRequestResolver = getApiRequestResolver(authentication, request, apiKey, null);
-        //perform jwt validation check here
         long startTime = System.currentTimeMillis();
-        return apiService.processApiRequest(apiRequestResolver)
-                .thenApply(resolvedResp -> {
-                    log.info("{} Time taken to complete GET api request {} is {} ms", apiRequestResolver.getLoggerString(),
-                            apiKey, (System.currentTimeMillis() - startTime));
-                    setRequiredCookies(apiRequestResolver, request, response);
-                    log.info("{} for sessionId {}, the following servlet response is being set {} for GET request",
-                            apiRequestResolver.getLoggerString(), apiRequestResolver.getSessionId(), response.getHeaderNames());
-                    return new ResponseEntity<>(resolvedResp.getRespData(), headers, resolvedResp.getStatusCode());
-                });
+        ApiResponseResolver resolvedResp = apiService.processApiRequest(apiRequestResolver).get();
+        log.info("{} Time taken to complete GET api request {} is {} ms", apiRequestResolver.getLoggerString(),
+                apiKey, (System.currentTimeMillis() - startTime));
+        setRequiredCookies(apiRequestResolver, request, response);
+        log.info("{} for sessionId {}, the following servlet response is being set {} for GET request",
+                apiRequestResolver.getLoggerString(), apiRequestResolver.getSessionId(), response.getHeaderNames());
+        return new ResponseEntity<>(resolvedResp.getRespData(), headers, resolvedResp.getStatusCode());
+//        return apiService.processApiRequest(apiRequestResolver).thenApplyAsync(resolvedResp -> {
+//                    log.info("{} Time taken to complete GET api request {} is {} ms", apiRequestResolver.getLoggerString(),
+//                            apiKey, (System.currentTimeMillis() - startTime));
+//                    setRequiredCookies(apiRequestResolver, request, response);
+//                    log.info("{} for sessionId {}, the following servlet response is being set {} for GET request",
+//                            apiRequestResolver.getLoggerString(), apiRequestResolver.getSessionId(), response.getHeaderNames());
+//                    log.debug("Response data for GET request is {} and code {}", resolvedResp.getRespData(), resolvedResp.getStatusCode());
+//                    return new ResponseEntity<>(resolvedResp.getRespData(), headers, resolvedResp.getStatusCode());
+//                });
     }
 
-    @PostMapping("/{api-key}/**")
-    public CompletableFuture<ResponseEntity<JsonNode>> handlePostRequest(@AuthenticationPrincipal Authentication authentication,
+    @PostMapping("/post/{api-key}/**")
+    public ResponseEntity<JsonNode> handlePostRequest(@AuthenticationPrincipal Authentication authentication,
                                                                          @PathVariable(name = "api-key") String apiKey, @RequestBody JsonNode requestBody,
-                                                                         HttpServletRequest request, HttpServletResponse response) {
+                                                                         HttpServletRequest request, HttpServletResponse response) throws Exception {
         log.info("Handling POST request for API: {}", apiKey);
         HttpHeaders headers = Utils.createHeaders(request);
 //        ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, apiKey, requestBody);
         ApiRequestResolver apiRequestResolver = getApiRequestResolver(authentication, request, apiKey, requestBody);
         //perform jwt validation check here
         long startTime = System.currentTimeMillis();
-        return apiService.processApiRequest(apiRequestResolver)
-                .thenApply(resolvedResp -> {
-                    log.info("{} Time taken to complete POST api request {} is {} ms", apiRequestResolver.getLoggerString(),
-                            apiKey, (System.currentTimeMillis() - startTime));
-                    setRequiredCookies(apiRequestResolver, request, response);
-                    log.info("{} for sessionId {}, the following servlet response is being set {} for POST request",
-                            apiRequestResolver.getLoggerString(), apiRequestResolver.getSessionId(), response.getHeaderNames());
-                    return new ResponseEntity<>(resolvedResp.getRespData(),headers, resolvedResp.getStatusCode());
-                });
+        ApiResponseResolver resolvedResp = apiService.processApiRequest(apiRequestResolver).get();
+        log.info("{} Time taken to complete POST api request {} is {} ms", apiRequestResolver.getLoggerString(),
+                apiKey, (System.currentTimeMillis() - startTime));
+        setRequiredCookies(apiRequestResolver, request, response);
+        log.info("{} for sessionId {}, the following servlet response is being set {} for POST request",
+                apiRequestResolver.getLoggerString(), apiRequestResolver.getSessionId(), response.getHeaderNames());
+        return new ResponseEntity<>(resolvedResp.getRespData(),headers, resolvedResp.getStatusCode());
+//        return apiService.processApiRequest(apiRequestResolver)
+//                .thenApply(resolvedResp -> {
+//                    log.info("{} Time taken to complete POST api request {} is {} ms", apiRequestResolver.getLoggerString(),
+//                            apiKey, (System.currentTimeMillis() - startTime));
+//                    setRequiredCookies(apiRequestResolver, request, response);
+//                    log.info("{} for sessionId {}, the following servlet response is being set {} for POST request",
+//                            apiRequestResolver.getLoggerString(), apiRequestResolver.getSessionId(), response.getHeaderNames());
+//                    return new ResponseEntity<>(resolvedResp.getRespData(),headers, resolvedResp.getStatusCode());
+//                });
     }
 
-    @PutMapping("/{api-key}/**")
-    public CompletableFuture<ResponseEntity<JsonNode>> handlePutRequest(@AuthenticationPrincipal Authentication authentication,
+    @PutMapping("/put/{api-key}/**")
+    public ResponseEntity<JsonNode> handlePutRequest(@AuthenticationPrincipal Authentication authentication,
                                                                         @PathVariable(name = "api-key") String apiKey, @RequestBody JsonNode requestBody,
-                                                                        HttpServletRequest request, HttpServletResponse response) {
+                                                                        HttpServletRequest request, HttpServletResponse response) throws Exception {
         log.info("Handling PUT request for API: {}", apiKey);
         HttpHeaders headers = Utils.createHeaders(request);
 //        ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, apiKey, requestBody);
         ApiRequestResolver apiRequestResolver = getApiRequestResolver(authentication, request, apiKey, requestBody);
         //perform jwt validation check here
         long startTime = System.currentTimeMillis();
-        return apiService.processApiRequest(apiRequestResolver)
-                .thenApply(resolvedResp -> {
-                    log.info("{} Time taken to complete PUT api request {} is {} ms", apiRequestResolver.getLoggerString(),
-                            apiKey, (System.currentTimeMillis() - startTime));
-                    setRequiredCookies(apiRequestResolver, request, response);
-                    log.info("{} for sessionId {}, the following servlet response is being set {} for PUT request",
-                            apiRequestResolver.getLoggerString(), apiRequestResolver.getSessionId(), response.getHeaderNames());
-                    return new ResponseEntity<>(resolvedResp.getRespData(),headers,resolvedResp.getStatusCode());
-                });
+        ApiResponseResolver resolvedResp = apiService.processApiRequest(apiRequestResolver).get();
+        log.info("{} Time taken to complete PUT api request {} is {} ms", apiRequestResolver.getLoggerString(),
+                apiKey, (System.currentTimeMillis() - startTime));
+        setRequiredCookies(apiRequestResolver, request, response);
+        log.info("{} for sessionId {}, the following servlet response is being set {} for PUT request",
+                apiRequestResolver.getLoggerString(), apiRequestResolver.getSessionId(), response.getHeaderNames());
+        return new ResponseEntity<>(resolvedResp.getRespData(),headers,resolvedResp.getStatusCode());
+//        return apiService.processApiRequest(apiRequestResolver)
+//                .thenApply(resolvedResp -> {
+//                    log.info("{} Time taken to complete PUT api request {} is {} ms", apiRequestResolver.getLoggerString(),
+//                            apiKey, (System.currentTimeMillis() - startTime));
+//                    setRequiredCookies(apiRequestResolver, request, response);
+//                    log.info("{} for sessionId {}, the following servlet response is being set {} for PUT request",
+//                            apiRequestResolver.getLoggerString(), apiRequestResolver.getSessionId(), response.getHeaderNames());
+//                    return new ResponseEntity<>(resolvedResp.getRespData(),headers,resolvedResp.getStatusCode());
+//                });
     }
 
-    @PatchMapping("/{api-key}/**")
-    public CompletableFuture<ResponseEntity<JsonNode>> handlePatchRequest(@AuthenticationPrincipal Authentication authentication,
+    @PatchMapping("/patch/{api-key}/**")
+    public ResponseEntity<JsonNode> handlePatchRequest(@AuthenticationPrincipal Authentication authentication,
                                                                           @PathVariable(name = "api-key") String apiKey, @RequestBody JsonNode requestBody,
-                                                                          HttpServletRequest request, HttpServletResponse response) {
+                                                                          HttpServletRequest request, HttpServletResponse response) throws Exception {
         log.info("Handling PATCH request for API: {}", apiKey);
         HttpHeaders headers = Utils.createHeaders(request);
 //        ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, apiKey, requestBody);
         ApiRequestResolver apiRequestResolver = getApiRequestResolver(authentication, request, apiKey, requestBody);
         //perform jwt validation check here
         long startTime = System.currentTimeMillis();
-        return apiService.processApiRequest(apiRequestResolver)
-                .thenApply(resolvedResp -> {
-                    log.info("{} Time taken to complete PATCH api request {} is {} ms", apiRequestResolver.getLoggerString(),
-                            apiKey, (System.currentTimeMillis() - startTime));
-                    setRequiredCookies(apiRequestResolver, request, response);
-                    log.info("{} for sessionId {}, the following servlet response is being set {} for PATCH request",
-                            apiRequestResolver.getLoggerString(), apiRequestResolver.getSessionId(), response.getHeaderNames());
-                    return new ResponseEntity<>(resolvedResp.getRespData(), headers,resolvedResp.getStatusCode());
-                });
+        ApiResponseResolver resolvedResp = apiService.processApiRequest(apiRequestResolver).get();
+        log.info("{} Time taken to complete PATCH api request {} is {} ms", apiRequestResolver.getLoggerString(),
+                apiKey, (System.currentTimeMillis() - startTime));
+        setRequiredCookies(apiRequestResolver, request, response);
+        log.info("{} for sessionId {}, the following servlet response is being set {} for PATCH request",
+                apiRequestResolver.getLoggerString(), apiRequestResolver.getSessionId(), response.getHeaderNames());
+        return new ResponseEntity<>(resolvedResp.getRespData(), headers,resolvedResp.getStatusCode());
+//        return apiService.processApiRequest(apiRequestResolver)
+//                .thenApply(resolvedResp -> {
+//                    log.info("{} Time taken to complete PATCH api request {} is {} ms", apiRequestResolver.getLoggerString(),
+//                            apiKey, (System.currentTimeMillis() - startTime));
+//                    setRequiredCookies(apiRequestResolver, request, response);
+//                    log.info("{} for sessionId {}, the following servlet response is being set {} for PATCH request",
+//                            apiRequestResolver.getLoggerString(), apiRequestResolver.getSessionId(), response.getHeaderNames());
+//                    return new ResponseEntity<>(resolvedResp.getRespData(), headers,resolvedResp.getStatusCode());
+//                });
     }
 
     @DeleteMapping("/{api-key}/**")
-    public CompletableFuture<ResponseEntity<JsonNode>> handleDeleteRequest(@AuthenticationPrincipal Authentication authentication,
+    public ResponseEntity<JsonNode> handleDeleteRequest(@AuthenticationPrincipal Authentication authentication,
                                                                            @PathVariable(name = "api-key") String apiKey, HttpServletRequest request,
-                                                                           HttpServletResponse response) {
+                                                                           HttpServletResponse response) throws Exception {
         log.info("Handling DELETE request for API: {}", apiKey);
         HttpHeaders headers = Utils.createHeaders(request);
 //        ApiRequestResolver apiRequestResolver = commonService.createApiResolverRequest(request, apiKey, null);
         ApiRequestResolver apiRequestResolver = getApiRequestResolver(authentication, request, apiKey, null);
         //perform jwt validation check here
         long startTime = System.currentTimeMillis();
-        return apiService.processApiRequest(apiRequestResolver)
-                .thenApply(resolvedResp -> {
-                    log.info("{} Time taken to complete DELETE api request {} is {} ms", apiRequestResolver.getLoggerString(),
-                            apiKey, (System.currentTimeMillis() - startTime));
-                    setRequiredCookies(apiRequestResolver, request, response);
-                    log.info("{} for sessionId {}, the following servlet response is being set {} for DELETE request",
-                            apiRequestResolver.getLoggerString(), apiRequestResolver.getSessionId(), response.getHeaderNames());
-                    return new ResponseEntity<>(resolvedResp.getRespData(), headers,resolvedResp.getStatusCode());
-                });
+        ApiResponseResolver resolvedResp = apiService.processApiRequest(apiRequestResolver).get();
+        log.info("{} Time taken to complete DELETE api request {} is {} ms", apiRequestResolver.getLoggerString(),
+                apiKey, (System.currentTimeMillis() - startTime));
+        setRequiredCookies(apiRequestResolver, request, response);
+        log.info("{} for sessionId {}, the following servlet response is being set {} for DELETE request",
+                apiRequestResolver.getLoggerString(), apiRequestResolver.getSessionId(), response.getHeaderNames());
+        return new ResponseEntity<>(resolvedResp.getRespData(), headers,resolvedResp.getStatusCode());
+//        return apiService.processApiRequest(apiRequestResolver)
+//                .thenApply(resolvedResp -> {
+//                    log.info("{} Time taken to complete DELETE api request {} is {} ms", apiRequestResolver.getLoggerString(),
+//                            apiKey, (System.currentTimeMillis() - startTime));
+//                    setRequiredCookies(apiRequestResolver, request, response);
+//                    log.info("{} for sessionId {}, the following servlet response is being set {} for DELETE request",
+//                            apiRequestResolver.getLoggerString(), apiRequestResolver.getSessionId(), response.getHeaderNames());
+//                    return new ResponseEntity<>(resolvedResp.getRespData(), headers,resolvedResp.getStatusCode());
+//                });
     }
 
     private void setRequiredCookies(ApiRequestResolver apiRequestResolver, HttpServletRequest request,

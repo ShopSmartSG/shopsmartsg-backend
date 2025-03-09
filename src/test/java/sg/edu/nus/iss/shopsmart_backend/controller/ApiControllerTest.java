@@ -56,7 +56,7 @@ class ApiControllerTest {
         commonMocking();
 
         ResponseEntity<JsonNode> response = apiController.handleGetRequest(new UsernamePasswordAuthenticationToken("", null),"test",
-                httpServletRequest, httpServletResponse).get();
+                httpServletRequest, httpServletResponse);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
@@ -65,7 +65,7 @@ class ApiControllerTest {
         commonMocking();
 
         ResponseEntity<JsonNode> response = apiController.handlePostRequest(new UsernamePasswordAuthenticationToken("", null), "test", objectMapper.createObjectNode(),
-                httpServletRequest, httpServletResponse).get();
+                httpServletRequest, httpServletResponse);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
@@ -74,7 +74,7 @@ class ApiControllerTest {
         commonMocking();
 
         ResponseEntity<JsonNode> response = apiController.handlePutRequest(new UsernamePasswordAuthenticationToken("", null), "test", objectMapper.createObjectNode(),
-                httpServletRequest, httpServletResponse).get();
+                httpServletRequest, httpServletResponse);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
@@ -83,7 +83,7 @@ class ApiControllerTest {
         commonMocking();
 
         ResponseEntity<JsonNode> response = apiController.handlePatchRequest(new UsernamePasswordAuthenticationToken("", null), "test", objectMapper.createObjectNode(),
-                httpServletRequest, httpServletResponse).get();
+                httpServletRequest, httpServletResponse);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
@@ -92,7 +92,7 @@ class ApiControllerTest {
         commonMocking();
 
         ResponseEntity<JsonNode> response = apiController.handleDeleteRequest(new UsernamePasswordAuthenticationToken("", null), "test",
-                httpServletRequest, httpServletResponse).get();
+                httpServletRequest, httpServletResponse);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
