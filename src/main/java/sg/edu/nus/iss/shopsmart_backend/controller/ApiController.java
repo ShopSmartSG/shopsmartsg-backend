@@ -99,7 +99,7 @@ public class ApiController extends Constants {
 //                });
     }
 
-    @PostMapping("/post/{api-key}/**")
+    @PostMapping("/{api-key}/**")
     public ResponseEntity<JsonNode> handlePostRequest(@AuthenticationPrincipal Authentication authentication,
                                                                          @PathVariable(name = "api-key") String apiKey, @RequestBody JsonNode requestBody,
                                                                          HttpServletRequest request, HttpServletResponse response) throws Exception {
@@ -127,7 +127,7 @@ public class ApiController extends Constants {
 //                });
     }
 
-    @PutMapping("/put/{api-key}/**")
+    @PutMapping("/{api-key}/**")
     public ResponseEntity<JsonNode> handlePutRequest(@AuthenticationPrincipal Authentication authentication,
                                                                         @PathVariable(name = "api-key") String apiKey, @RequestBody JsonNode requestBody,
                                                                         HttpServletRequest request, HttpServletResponse response) throws Exception {
@@ -155,7 +155,7 @@ public class ApiController extends Constants {
 //                });
     }
 
-    @PatchMapping("/patch/{api-key}/**")
+    @PatchMapping("/{api-key}/**")
     public ResponseEntity<JsonNode> handlePatchRequest(@AuthenticationPrincipal Authentication authentication,
                                                                           @PathVariable(name = "api-key") String apiKey, @RequestBody JsonNode requestBody,
                                                                           HttpServletRequest request, HttpServletResponse response) throws Exception {
