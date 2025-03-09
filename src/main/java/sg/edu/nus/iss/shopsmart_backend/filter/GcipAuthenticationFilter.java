@@ -44,6 +44,7 @@ public class GcipAuthenticationFilter extends OncePerRequestFilter implements Fi
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+        log.info("Inside GcipAuthenticationFilter for the request URI: {}", request.getRequestURI());
         String path = request.getRequestURI();
         if (path.startsWith("/auth/google/") || path.startsWith("/auth/native/")
                 || path.startsWith("/profile/") || path.startsWith("/redis-api/")

@@ -1,5 +1,7 @@
 package sg.edu.nus.iss.shopsmart_backend.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -19,6 +21,7 @@ import java.util.Arrays;
 
 @Configuration
 public class SecurityConfig {
+    private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthService authService,
@@ -30,12 +33,14 @@ public class SecurityConfig {
                     request.anyRequest().authenticated();
                 })
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer.configurationSource(corsConfigurationSource()))
                 .addFilterBefore(new GcipAuthenticationFilter(authService, commonService, redisManager), SecurityContextHolderAwareRequestFilter.class);
         return http.build();
     }
 
-    @Bean
+//    @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+        log.info("Setting up CORS configuration");
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("https://app.shopsmartsg.com", "https://shopsmartsg.com"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
