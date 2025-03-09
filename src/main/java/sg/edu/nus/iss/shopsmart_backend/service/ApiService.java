@@ -54,7 +54,7 @@ public class ApiService extends Constants {
         }
 
         String userId = apiRequestResolver.getUserId();
-        if((userId == null || apiRequestResolver.isLoggedIn()) && ddo.isProtectedApi()){
+        if((userId == null || !apiRequestResolver.isLoggedIn()) && ddo.isProtectedApi()){
             log.info("{} User is not logged in or user not found, hence cant process protected api: {}", apiRequestResolver.getLoggerString(), apiKey);
             apiResponseResolver.setStatusCode(HttpStatus.UNAUTHORIZED);
             ObjectNode responseData = mapper.createObjectNode();
