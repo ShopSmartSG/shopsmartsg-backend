@@ -63,6 +63,15 @@ public class ApiController extends Constants {
         apiRequestResolver.setApiKey(apiKey);
         apiRequestResolver.setRequestBody(requestBody);
 
+        String requestUri = request.getRequestURI();
+        String additionalUriData = "";
+        if(requestUri.contains(apiKey.concat(SLASH))){
+            additionalUriData = request.getRequestURI().split(apiKey + "/")[1];
+            apiRequestResolver.setAdditionalUriData(additionalUriData);
+            log.info("{} For the api key {} found additional data to be provided : {}", apiRequestResolver.getLoggerString(),
+                    apiRequestResolver.getApiKey(), apiRequestResolver.getAdditionalUriData());
+        }
+
         String userIdByPrinciple = (String) authentication.getPrincipal();
         apiRequestResolver.setUserId(userIdByPrinciple);
         if(userIdByPrinciple==null || userIdByPrinciple.isEmpty()){
