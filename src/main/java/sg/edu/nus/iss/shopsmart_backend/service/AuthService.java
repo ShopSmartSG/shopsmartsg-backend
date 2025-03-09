@@ -472,6 +472,7 @@ public class AuthService extends Constants {
         String opt = requestBody.get(OTP).asText();
         String gcipEmailWithProfileType = Utils.insertProfileTypeIntoEmail(email, profileType);
         log.debug("updated email with profileType for signUp: {}", gcipEmailWithProfileType);
+        //TODO :: need to do otp check before proceeding with GCIP signUp.
         GcipNativeLoginTokenResp gcipNativeSignUpTokenResp = nativeAuthForUserThroughGcip(gcipEmailWithProfileType, password,
                 apiRequestResolver.getLoggerString(), profileType, true, apiRequestResolver.getLoggerString());
         if (gcipNativeSignUpTokenResp == null){
@@ -493,8 +494,6 @@ public class AuthService extends Constants {
         log.debug("Email received from GCIP for native signUp resp: {}", gcipNativeSignUpTokenResp.getEmail());
         log.debug("Id token received from GCIP for native signUp resp: {}", gcipNativeSignUpTokenResp.getIdToken());
         log.debug("Refresh token received from GCIP for native signUp resp: {}", gcipNativeSignUpTokenResp.getRefreshToken());
-
-        //TODO :: incorporate OTP validation part here as well.
         return profileService.validateOtp(apiRequestResolver, email, opt, profileType).thenComposeAsync(valOtpResp -> {
             log.info("{} OTP validation response for user register: {}", apiRequestResolver.getLoggerString(), valOtpResp);
             if (!valOtpResp){
@@ -503,6 +502,7 @@ public class AuthService extends Constants {
                 responseData.put(MESSAGE, "Registration of user failed.");
                 apiResponseResolver.setStatusCode(HttpStatus.OK);
                 apiResponseResolver.setRespData(responseData);
+                deleteAccountThroughGcip(gcipNativeSignUpTokenResp.getIdToken(), apiRequestResolver.getSessionId(), apiRequestResolver.getLoggerString());
                 return CompletableFuture.completedFuture(apiResponseResolver);
             }
             log.info("{} OTP validated successfully for user, can proceed for user registration: {}", apiRequestResolver.getLoggerString(), email);
@@ -586,6 +586,7 @@ public class AuthService extends Constants {
         String otp = requestBody.get(OTP).asText();
         String gcipEmailWithProfileType = Utils.insertProfileTypeIntoEmail(email, profileType);
         log.debug("updated email with profileType for login: {}", gcipEmailWithProfileType);
+        //TODO :: need to do otp check before proceeding with GCIP login.
         GcipNativeLoginTokenResp gcipNativeLoginTokenResp = nativeAuthForUserThroughGcip(gcipEmailWithProfileType, password,
                 apiRequestResolver.getLoggerString(), profileType, false, apiRequestResolver.getLoggerString());
         if (gcipNativeLoginTokenResp == null){
