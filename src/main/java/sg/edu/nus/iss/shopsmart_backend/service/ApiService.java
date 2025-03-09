@@ -68,6 +68,9 @@ public class ApiService extends Constants {
             queryParams = new HashMap<>();
         }
         queryParams.put(CORRELATION_ID, apiRequestResolver.getCorrelationId());
+        if(ddo.isProtectedApi()){
+            queryParams.put("user-id", userId);
+        }
 
         String additionalUriData = apiRequestResolver.getAdditionalUriData();
 
@@ -80,9 +83,6 @@ public class ApiService extends Constants {
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(apiEndpoint);
         if (!queryParams.isEmpty()) {
             queryParams.forEach(uriBuilder::queryParam);
-        }
-        if(ddo.isProtectedApi()){
-            queryParams.put("user-id", userId);
         }
         HttpMethod method = Utils.getHttpMethod(ddo.getMethod());
         return wsUtils.makeWSCall(uriBuilder.toUriString(), apiRequestResolver.getRequestBody(),
