@@ -35,6 +35,13 @@ public class RedisManager extends Constants {
         }
     }
 
+    public void delHashValue(String key, String mapEntry){
+        log.debug("Deleting hash value for entry {} in redis key: {}", mapEntry, key);
+        try(Jedis jedis = jedisPool.getResource()){
+            jedis.hdel(key, mapEntry);
+        }
+    }
+
     public void setHashMap(String key, Map<String, String> hashMap){
         log.debug("Setting hash map for redis key: {}", key);
         try(Jedis jedis = jedisPool.getResource()){

@@ -38,7 +38,7 @@ class GenerateOtpHandlerTest extends Constants {
         ApiResponseResolver result = response.join();
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, result.getStatusCode());
         assertEquals("Email is empty or not found in request for otp generation", result.getRespData().get(MESSAGE).asText());
-        verify(profileService, never()).generateOtp(any(), anyString());
+        verify(profileService, never()).generateOtp(any(), anyString(), anyString());
         verify(nextHandler, never()).handle(any(), anyString());
     }
 
@@ -47,7 +47,7 @@ class GenerateOtpHandlerTest extends Constants {
         ApiRequestResolver request = new ApiRequestResolver();
         request.addParamValue(EMAIL, "test@example.com");
 
-        when(profileService.generateOtp(any(), eq("test@example.com")))
+        when(profileService.generateOtp(any(), eq("test@example.com"), eq("admin")))
                 .thenReturn(CompletableFuture.completedFuture(false)); // Simulate OTP generation failure
 
         CompletableFuture<ApiResponseResolver> response = handler.handle(request, "admin");
@@ -63,7 +63,7 @@ class GenerateOtpHandlerTest extends Constants {
         ApiRequestResolver request = new ApiRequestResolver();
         request.addParamValue(EMAIL, "test@example.com");
 
-        when(profileService.generateOtp(any(), eq("test@example.com")))
+        when(profileService.generateOtp(any(), eq("test@example.com"), eq("admin")))
                 .thenReturn(CompletableFuture.completedFuture(true)); // Simulate successful OTP generation
 
         ApiResponseResolver nextHandlerResponse = new ApiResponseResolver();
@@ -85,7 +85,7 @@ class GenerateOtpHandlerTest extends Constants {
 
         handler.setNext(null); // No next handler in the chain
 
-        when(profileService.generateOtp(any(), eq("test@example.com")))
+        when(profileService.generateOtp(any(), eq("test@example.com"), eq("admin")))
                 .thenReturn(CompletableFuture.completedFuture(true)); // Simulate successful OTP generation
 
         CompletableFuture<ApiResponseResolver> response = handler.handle(request, "admin");

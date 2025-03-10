@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import sg.edu.nus.iss.shopsmart_backend.model.ApiRequestResolver;
 import sg.edu.nus.iss.shopsmart_backend.model.ApiResponseResolver;
 import sg.edu.nus.iss.shopsmart_backend.service.ApiService;
@@ -54,8 +55,8 @@ class ApiControllerTest {
     public void testHandleGetRequest() throws Exception {
         commonMocking();
 
-        ResponseEntity<JsonNode> response = apiController.handleGetRequest("test",
-                httpServletRequest, httpServletResponse).get();
+        ResponseEntity<JsonNode> response = apiController.handleGetRequest(new UsernamePasswordAuthenticationToken("", null),"test",
+                httpServletRequest, httpServletResponse);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
@@ -63,8 +64,8 @@ class ApiControllerTest {
     public void testHandlePostRequest() throws Exception {
         commonMocking();
 
-        ResponseEntity<JsonNode> response = apiController.handlePostRequest("test", objectMapper.createObjectNode(),
-                httpServletRequest, httpServletResponse).get();
+        ResponseEntity<JsonNode> response = apiController.handlePostRequest(new UsernamePasswordAuthenticationToken("", null), "test", objectMapper.createObjectNode(),
+                httpServletRequest, httpServletResponse);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
@@ -72,8 +73,8 @@ class ApiControllerTest {
     public void testHandlePutRequest() throws Exception {
         commonMocking();
 
-        ResponseEntity<JsonNode> response = apiController.handlePutRequest("test", objectMapper.createObjectNode(),
-                httpServletRequest, httpServletResponse).get();
+        ResponseEntity<JsonNode> response = apiController.handlePutRequest(new UsernamePasswordAuthenticationToken("", null), "test", objectMapper.createObjectNode(),
+                httpServletRequest, httpServletResponse);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
@@ -81,8 +82,8 @@ class ApiControllerTest {
     public void testHandlePatchRequest() throws Exception {
         commonMocking();
 
-        ResponseEntity<JsonNode> response = apiController.handlePatchRequest("test", objectMapper.createObjectNode(),
-                httpServletRequest, httpServletResponse).get();
+        ResponseEntity<JsonNode> response = apiController.handlePatchRequest(new UsernamePasswordAuthenticationToken("", null), "test", objectMapper.createObjectNode(),
+                httpServletRequest, httpServletResponse);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
@@ -90,8 +91,8 @@ class ApiControllerTest {
     public void testHandleDeleteRequest() throws Exception {
         commonMocking();
 
-        ResponseEntity<JsonNode> response = apiController.handleDeleteRequest("test",
-                httpServletRequest, httpServletResponse).get();
+        ResponseEntity<JsonNode> response = apiController.handleDeleteRequest(new UsernamePasswordAuthenticationToken("", null), "test",
+                httpServletRequest, httpServletResponse);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 

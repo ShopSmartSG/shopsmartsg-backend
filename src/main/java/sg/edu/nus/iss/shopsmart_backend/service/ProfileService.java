@@ -1,6 +1,7 @@
 package sg.edu.nus.iss.shopsmart_backend.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.core.util.Json;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -30,7 +31,7 @@ public class ProfileService extends Constants {
         this.wsUtils = wsUtils;
     }
 
-    public CompletableFuture<Boolean> generateOtp(ApiRequestResolver apiRequestResolver, String email){
+    public CompletableFuture<Boolean> generateOtp(ApiRequestResolver apiRequestResolver, String email, String profileType){
         log.info("{} starting OTP generation for email: {}", apiRequestResolver.getLoggerString(), email);
         DataDynamicObject ddo = redisManager.getDdoData(GENERATE_OTP);
         String serviceUrl = redisManager.getServiceEndpoint(ddo.getService());
@@ -38,6 +39,7 @@ public class ProfileService extends Constants {
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(apiEndpoint);
         uriBuilder.queryParam(EMAIL, email);
+        uriBuilder.queryParam(PROFILE_TYPE, profileType.toUpperCase());
         HttpMethod method = Utils.getHttpMethod(ddo.getMethod());
         return wsUtils.makeWSCall(uriBuilder.toUriString(), null, new HashMap<>(), method,
                 ddo.getConnectTimeout(), ddo.getReadTimeout(), ddo.getReturnClass()).thenApplyAsync(response -> {
@@ -51,7 +53,7 @@ public class ProfileService extends Constants {
         });
     }
 
-    public CompletableFuture<Boolean> validateOtp(ApiRequestResolver apiRequestResolver, String email, String otp){
+    public CompletableFuture<Boolean> validateOtp(ApiRequestResolver apiRequestResolver, String email, String otp, String profileType){
         log.info("{} starting OTP validation for email: {}", apiRequestResolver.getLoggerString(), email);
         DataDynamicObject ddo = redisManager.getDdoData(VALIDATE_OTP);
         String serviceUrl = redisManager.getServiceEndpoint(ddo.getService());
@@ -60,8 +62,15 @@ public class ProfileService extends Constants {
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(apiEndpoint);
         uriBuilder.queryParam(EMAIL, email);
         uriBuilder.queryParam(OTP, otp);
-        HttpMethod method = Utils.getHttpMethod(ddo.getMethod());
-        return wsUtils.makeWSCall(uriBuilder.toUriString(), null, new HashMap<>(), method,
+        uriBuilder.queryParam(PROFILE_TYPE, profileType.toUpperCase());
+
+        ObjectNode requestBody = mapper.createObjectNode();
+        requestBody.put(EMAIL, email);
+        requestBody.put(OTP, otp);
+        requestBody.put(PROFILE_TYPE, profileType.toUpperCase());
+
+        HttpMethod method = Utils.getHttpMethod(ddo.getMethod()); //need to be POST
+        return wsUtils.makeWSCall(uriBuilder.toUriString(), requestBody, new HashMap<>(), method,
                 ddo.getConnectTimeout(), ddo.getReadTimeout(), ddo.getReturnClass()).thenApplyAsync(response -> {
             if(SUCCESS.equalsIgnoreCase(response.getStatus())){
                 log.info("{} OTP validated for email: {}", apiRequestResolver.getLoggerString(), email);

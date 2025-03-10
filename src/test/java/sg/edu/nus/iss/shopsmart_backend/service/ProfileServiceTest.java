@@ -50,7 +50,7 @@ class ProfileServiceTest extends Constants {
         when(redisManager.getServiceEndpoint(anyString())).thenReturn("http://localhost:8080");
         when(wsUtils.makeWSCall(anyString(), any(), any(), any(), anyLong(), anyLong(), anyString())).thenReturn(CompletableFuture.completedFuture(resp));
 
-        Boolean otpResp = profileService.generateOtp(new ApiRequestResolver(), "abc@mail.com").get();
+        Boolean otpResp = profileService.generateOtp(new ApiRequestResolver(), "abc@mail.com", "customer").get();
         assertTrue(otpResp);
     }
 
@@ -64,7 +64,7 @@ class ProfileServiceTest extends Constants {
         when(redisManager.getServiceEndpoint(anyString())).thenReturn("http://localhost:8080");
         when(wsUtils.makeWSCall(anyString(), any(), any(), any(), anyLong(), anyLong(), anyString())).thenReturn(CompletableFuture.completedFuture(resp));
 
-        Boolean otpResp = profileService.generateOtp(new ApiRequestResolver(), "abc@mail.com").get();
+        Boolean otpResp = profileService.generateOtp(new ApiRequestResolver(), "abc@mail.com", "customer").get();
         assertFalse(otpResp);
     }
 
@@ -78,7 +78,7 @@ class ProfileServiceTest extends Constants {
         when(redisManager.getServiceEndpoint(anyString())).thenReturn("http://localhost:8080");
         when(wsUtils.makeWSCall(anyString(), any(), any(), any(), anyLong(), anyLong(), anyString())).thenReturn(CompletableFuture.completedFuture(resp));
 
-        Boolean otpResp = profileService.validateOtp(new ApiRequestResolver(), "abc@mail.com", "123456").get();
+        Boolean otpResp = profileService.validateOtp(new ApiRequestResolver(), "abc@mail.com", "123456", "customer").get();
         assertTrue(otpResp);
     }
 
@@ -92,7 +92,7 @@ class ProfileServiceTest extends Constants {
         when(redisManager.getServiceEndpoint(anyString())).thenReturn("http://localhost:8080");
         when(wsUtils.makeWSCall(anyString(), any(), any(), any(), anyLong(), anyLong(), anyString())).thenReturn(CompletableFuture.completedFuture(resp));
 
-        Boolean otpResp = profileService.validateOtp(new ApiRequestResolver(), "abc@mail.com", "123456").get();
+        Boolean otpResp = profileService.validateOtp(new ApiRequestResolver(), "abc@mail.com", "123456", "customer").get();
         assertFalse(otpResp);
     }
 

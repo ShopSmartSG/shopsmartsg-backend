@@ -19,6 +19,7 @@ import sg.edu.nus.iss.shopsmart_backend.utils.RedisManager;
 import sg.edu.nus.iss.shopsmart_backend.utils.Utils;
 import sg.edu.nus.iss.shopsmart_backend.utils.WSUtils;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -44,14 +45,33 @@ public class ApiService extends Constants {
         String apiKey = apiRequestResolver.getApiKey();
         DataDynamicObject ddo = redisManager.getDdoData(apiKey);
         if (ddo == null) {
-            log.error("No ddo configuration found for the api key: {}", apiKey);
+            log.error("{} No ddo configuration found for the api key: {}", apiRequestResolver.getLoggerString(), apiKey);
             apiResponseResolver.setStatusCode(HttpStatus.NOT_ACCEPTABLE);
             ObjectNode responseData = mapper.createObjectNode();
             responseData.put(MESSAGE, "API ".concat(apiKey).concat(EMPTY_SPACE).concat("not supported in the system"));
             apiResponseResolver.setRespData(responseData);
             return CompletableFuture.completedFuture(apiResponseResolver);
         }
+
+        String userId = apiRequestResolver.getUserId();
+        if((userId == null || !apiRequestResolver.isLoggedIn()) && ddo.isProtectedApi()){
+            log.info("{} User is not logged in or user not found, hence cant process protected api: {}", apiRequestResolver.getLoggerString(), apiKey);
+            apiResponseResolver.setStatusCode(HttpStatus.UNAUTHORIZED);
+            ObjectNode responseData = mapper.createObjectNode();
+            responseData.put(MESSAGE, "Unauthorized access to the API ");
+            apiResponseResolver.setRespData(responseData);
+            return CompletableFuture.completedFuture(apiResponseResolver);
+        }
+
         Map<String, String> queryParams = apiRequestResolver.getQueryParams();
+        if(queryParams==null){
+            queryParams = new HashMap<>();
+        }
+        queryParams.put(CORRELATION_ID, apiRequestResolver.getCorrelationId());
+        if(ddo.isProtectedApi()){
+            queryParams.put("user-id", userId);
+        }
+
         String additionalUriData = apiRequestResolver.getAdditionalUriData();
 
         String serviceUrl = redisManager.getServiceEndpoint(ddo.getService());
@@ -61,7 +81,7 @@ public class ApiService extends Constants {
         }
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(apiEndpoint);
-        if (queryParams != null && !queryParams.isEmpty()) {
+        if (!queryParams.isEmpty()) {
             queryParams.forEach(uriBuilder::queryParam);
         }
         HttpMethod method = Utils.getHttpMethod(ddo.getMethod());

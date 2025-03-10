@@ -1,10 +1,13 @@
 package sg.edu.nus.iss.shopsmart_backend.utils;
 
+import java.util.List;
+
 public interface ApplicationConstants {
     String STATUS = "status";
     String STATUS_CODE = "statusCode";
     String SUCCESS = "success";
     String FAILURE = "failure";
+    String ERROR = "error";
     String DATA = "data";
     String MESSAGE = "message";
     String RESPONSE = "response";
@@ -15,11 +18,14 @@ public interface ApplicationConstants {
     String IP_ADDRESS = "ipAddress";
     String COMMON = "common";
     String SLASH = "/";
+    String QUESTION_MARK = "?";
     String EQUALS = "=";
+    String AMPERSAND = "&";
     String REQ_URI = "requestUri";
     String ADDITIONAL_URI_DATA = "additionalUriData";
     String EMAIL = "email";
     String OTP = "otp";
+    String PASSWORD = "password";
     String NEEDS_USER_PROF = "needsUserProf";
     String CREATED_AT = "createdAt";
     String VALID_TILL = "validTill";
@@ -31,7 +37,38 @@ public interface ApplicationConstants {
     String CUSTOMER = "customer";
     String MERCHANT = "merchant";
     String DELIVERY = "delivery";
+    String PROFILE_TYPE = "profileType";
     String ADMIN = "admin";
     String ADMIN_USER_ID = "adminUserId";
     String ADMIN_EMAIL_ID = "adminEmailId";
+    String POST_BODY = "postBody";
+    List<String> PROFILE_TYPES_LIST = List.of(CUSTOMER, MERCHANT, DELIVERY);
+    String LOGIN = "login";
+
+    String LOGIN_TYPE = "loginType";
+    String GOOGLE = "google";
+    String NATIVE = "native";
+    String CLIENT_ID = "client_id";
+    String CLIENT_SECRET = "client_secret";
+    String REDIRECT_URI = "redirect_uri";
+    String RESPONSE_TYPE = "response_type";
+    String SCOPE = "scope";
+    String STATE = "state";
+    String CODE = "code";
+    String AUTHORIZATION_URL = "authorizationUrl";
+    String GRANT_TYPE = "grant_type";
+    String AUTHORIZATION_CODE = "authorization_code";
+    String RAW_GOOGLE_TOKEN_EXCHANGE_RESP = "rawGoogleTokenExchangeResp";
+    String RAW_SIGN_WITH_IDP_THROUGH_GCIP_RESP = "rawSignWithIdpThroughGcipResp";
+    String RAW_ACC_LOOKUP_THROUGH_GCIP_RESP = "rawAccLookupThroughGcipResp";
+    String RAW_REFRESH_ID_TOKEN_THROUGH_GCIP = "rawRefreshIdTokenThroughGcip";
+    String RAW_NATIVE_LOGIN_THROUGH_GCIP_RESP = "rawNativeLoginThroughGcipResp";
+    String RAW_DELETE_ACC_THROUGH_GCIP_RESP = "rawDeleteAccThroughGcipResp";
+    String ACCESS_TOKEN = "access_token";
+    String PROVIDER_ID_GOOGLE = "providerId=google.com";
+    String OAUTH_ID_TOKEN = "oauthIdToken";
+    String OAUTH_ACCESS_TOKEN = "oauthAccessToken";
+    String GCIP_ID_TOKEN = "gcipIdToken";
+    String GCIP_REFRESH_TOKEN = "gcipRefreshToken";
+    String RETURN_SECURE_TOKEN = "returnSecureToken";
 }
